@@ -1,0 +1,9 @@
+#!/bin/bash
+#SBATCH --job-name=screen_iagos
+#SBATCH --time=1-00:00:00
+#SBATCH --mem=1gb
+#SBATCH -o /home/oboucher/screen_iagos.%j
+
+cd /home/oboucher/AVION/ERL_FlightTrajectory
+
+python screen_iagos_only.py
