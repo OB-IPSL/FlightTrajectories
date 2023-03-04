@@ -218,8 +218,8 @@ for i1,region1 in enumerate(regions):
         plt.scatter(df['time OB'],df['time_iagos'],label=label_regions[i1]+' => '+label_regions[i2])
 #--make plot nice
 plt.legend(fontsize=9)
-plt.xlim(1,12)
-plt.ylim(1,12)
+plt.xlim(2.5,12)
+plt.ylim(2.5,12)
 plt.xlabel('Optimised flight time (hours)',fontsize=20)
 plt.ylabel('Actual IAGOS flight time (hours)',fontsize=20)
 plt.xscale('log')
@@ -263,8 +263,8 @@ for flight_id in flight_ids:
       plt.scatter([],[],color=colors[flight_id],label=flight_id)
 #--execute plot
 plt.legend(fontsize=20)
-plt.xlim(1,12)
-plt.ylim(1,12)
+plt.xlim(2.5,12)
+plt.ylim(2.5,12)
 plt.xlabel('Optimised flight time (hours)',fontsize=20)
 plt.ylabel('Actual IAGOS flight time (hours)',fontsize=20)
 plt.xscale('log')

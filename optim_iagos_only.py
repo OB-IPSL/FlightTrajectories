@@ -100,6 +100,7 @@ R_earth = 6372800.
 disp=False
 #--show plots
 pltshow=False
+pltshow=True
 #--save plots
 pltsave=True
 #
@@ -718,10 +719,16 @@ for iagos_file in iagos_files:
   #--plot 2: height
   #----------------
   fig,ax = plt.subplots()
-  ax.plot(lon_iagos_values, pressure_iagos.values/100., c='black', lw=2, label='pressure IAGOS')
-  ax.set_ylim(1030,0)
+  ax.set_ylim(1030,-300)
   ax.set_ylabel("Pressure (hPa)",color="black",fontsize=14)
-  ax.scatter(lon_key_values, alt_key_values/100., c='red', marker='X', lw=1, label='FL - Cruising')
+  ax.set_xlabel("Longitude",color="black",fontsize=14)
+  ax.plot(lon_iagos_values, pressure_iagos/100., c='black', lw=2, label='IAGOS flight pressure')
+  ax.plot(lon_iagos_values[ind], pressure_iagos[ind]/100., c='red', lw=2, label='Flight pressure (cruising)',zorder=10)
+  ax.plot(lon_iagos_values[:-1], np.diff(gaussian_filter1d(pressure_iagos,40)), c='blue', lw=1, label='Finite difference')
+  ax.plot(lon_iagos_values[[0,-1]], [350.,350.], c='black', linestyle='solid', lw=1)
+  ax.plot(lon_iagos_values[[0,-1]], [50.,50.], c='black', linestyle='dashed', lw=1)
+  ax.plot(lon_iagos_values[[0,-1]], [-50.,-50.], c='black', linestyle='dashed', lw=1)
+  ax.scatter(lon_key_values, alt_key_values/100., c='red', marker='X', lw=1, label='Origin - Cruising - Destination')
   #--make plot nice
   plt.title(iagos_id+' '+str(flightid_iagos)+' '+dep_airport_iagos+'=>'+arr_airport_iagos+' '+' '+stryr+strmth+strday+' level='+str(optim_level)+' hPa')
   plt.legend()
