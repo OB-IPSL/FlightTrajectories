@@ -26,7 +26,7 @@ from misc_geo import haversine, bearing, nearest, closest_argmin, sph2car, car2s
 from optimalrouting import ZermeloLonLat
 
 
-def cost_time(lons, lats, dtprint=False):
+def cost_time(lons, lats, lons_wind, lats_wind, dtprint=False):
    #--Array of positions (lons, lats)
    positions=np.array([ [x,y] for x,y in zip(lons,lats) ])
    #--Ground track info
@@ -35,7 +35,7 @@ def cost_time(lons, lats, dtprint=False):
    #--Compute distances
    dists =  haversine(positions[:-1, 1],positions[:-1, 0],positions[1:, 1],positions[1:, 0])
    #--interpolated wind speed on lon,lat array
-   wind_u, wind_v = wind(lons, lats)
+   wind_u, wind_v = wind(lons, lats, lons_wind, lats_wind)
    #--Compute wind in the middles of segments
    winds_u = (wind_u[:-1]+wind_u[1:])/2.0
    winds_v = (wind_v[:-1]+wind_v[1:])/2.0
@@ -71,17 +71,17 @@ def cost_time(lons, lats, dtprint=False):
    return total_time
 
 #--Cost function: return flight duration squared (this is the function to be minimized)
-def cost_squared(y, x0, lon1, lat1, lon2, lat2, dtprint=False):
+def cost_squared(y, x0, lon1, lat1, lon2, lat2,lons_wind, lats_wind, dtprint=False):
    #--y is the vector to be optimized (excl. departure and arrival)
    #--x0 is the cordinate (vector of longitudes corresponding to the y)
    #--lons vector including dep and arr
    lons = np.array([lon1] + list(x0) + [lon2])
    #--lats vector including dep and arr
    lats = np.array([lat1] + list(y)  + [lat2])
-   return cost_time(lons, lats, dtprint=dtprint)**2.0
+   return cost_time(lons, lats, lons_wind, lats_wind, dtprint=dtprint)**2.0
 
 #--Extraction of wind speed components in m/s
-def wind(lons,lats):
+def wind(lons,lats, lons_wind, lats_wind):
    #--extraction of wind in m/s
    #--we extract wind on lat using the xarray sel method
    lons_indices=closest_argmin(lons,lons_wind)  #--we need the indices because lon,time are lumped
@@ -104,7 +104,7 @@ def wind(lons,lats):
    return windu,windv
 #
 #--Compute shortest route
-def shortest_route(dep_loc, arr_loc, npoints, even_spaced=True):
+def shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True):
     #--Returns npoints points along the shortest (great circle) route
     #--dep_loc and arr_loc are in the order (lon, lat)
     latlon_crs = ccrs.PlateCarree()
