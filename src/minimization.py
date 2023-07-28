@@ -26,7 +26,7 @@ from misc_geo import haversine, bearing, nearest, closest_argmin, sph2car, car2s
 from optimalrouting import ZermeloLonLat
 
 
-def cost_time(lons, lats, lons_wind, lats_wind, dtprint=False):
+def cost_time(lons, lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False):
    #--Array of positions (lons, lats)
    positions=np.array([ [x,y] for x,y in zip(lons,lats) ])
    #--Ground track info
@@ -35,7 +35,7 @@ def cost_time(lons, lats, lons_wind, lats_wind, dtprint=False):
    #--Compute distances
    dists =  haversine(positions[:-1, 1],positions[:-1, 0],positions[1:, 1],positions[1:, 0])
    #--interpolated wind speed on lon,lat array
-   wind_u, wind_v = wind(lons, lats, lons_wind, lats_wind)
+   wind_u, wind_v = wind(lons, lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced )
    #--Compute wind in the middles of segments
    winds_u = (wind_u[:-1]+wind_u[1:])/2.0
    winds_v = (wind_v[:-1]+wind_v[1:])/2.0
@@ -71,17 +71,17 @@ def cost_time(lons, lats, lons_wind, lats_wind, dtprint=False):
    return total_time
 
 #--Cost function: return flight duration squared (this is the function to be minimized)
-def cost_squared(y, x0, lon1, lat1, lon2, lat2,lons_wind, lats_wind, dtprint=False):
+def cost_squared(y, x0, lon1, lat1, lon2, lat2,lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False):
    #--y is the vector to be optimized (excl. departure and arrival)
    #--x0 is the cordinate (vector of longitudes corresponding to the y)
    #--lons vector including dep and arr
    lons = np.array([lon1] + list(x0) + [lon2])
    #--lats vector including dep and arr
    lats = np.array([lat1] + list(y)  + [lat2])
-   return cost_time(lons, lats, lons_wind, lats_wind, dtprint=dtprint)**2.0
+   return cost_time(lons, lats, lons_wind, lats_wind,  xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=dtprint)**2.0
 
 #--Extraction of wind speed components in m/s
-def wind(lons,lats, lons_wind, lats_wind):
+def wind(lons,lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced):
    #--extraction of wind in m/s
    #--we extract wind on lat using the xarray sel method
    lons_indices=closest_argmin(lons,lons_wind)  #--we need the indices because lon,time are lumped
@@ -92,10 +92,8 @@ def wind(lons,lats, lons_wind, lats_wind):
    lons_z  = xr.DataArray(lons_indices, dims="zz")
    lats_z  = xr.DataArray(lats_closest, dims="zz")
    #--Extract the data along the new axis
-   windu=xr_u200_reduced.isel(z=lons_z).sel(latitude=lats_z)['u'].values
-
-   #xr_u200_reduced.sel(z=lons_z.values).rename_dims({"z": "zz",}).sel(latitude=lats_z)['u'].values
-   windv=xr_v200_reduced.isel(z=lons_z).sel(latitude=lats_z)['v'].values
+   windu=xr_u200_reduced.sel(z=lons_z, latitude=lats_z)['u'].values
+   windv=xr_v200_reduced.sel(z=lons_z, latitude=lats_z)['v'].values
    #xr_v200_reduced.sel(z=lons_z.values).rename_dims({"z": "zz",}).sel(latitude=lats_z)['v'].values
 
    #windu=xr_u200_reduced.interp(latitude=lats_z,z=lons_z,method='linear')['u'].values
@@ -137,18 +135,19 @@ def shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True):
     return x0, y0
 #
 #--Compute quickest route
-def quickest_route(dep_loc, arr_loc, npoints, lat_iagos):
+def quickest_route(dep_loc, arr_loc, npoints, lat_iagos, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter ):
     #
     #--bounds
     bnds = tuple((-89.9,89.9) for i in range(npoints))
     #
     #--First compute shortest route
-    x0, y0 = shortest_route(dep_loc, arr_loc, npoints, even_spaced=True)
+    x0, y0 = shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True)
     #
     #--Minimization with y0 from shortest route as initial conditions
-    res = minimize(cost_squared,y0[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc),method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp} )
+
+    res = minimize(cost_squared,y0[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp} )
     y = np.append(np.insert(res['x'],0,dep_loc[1]),arr_loc[1])
-    quickest_time=cost_time(x0, y, dtprint=False)
+    quickest_time=cost_time(x0, y, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
     #
     #--Perform several other minimizations with y0 shifted southwards and northwards
     n=len(x0)
@@ -158,9 +157,9 @@ def quickest_route(dep_loc, arr_loc, npoints, lat_iagos):
       dy=[dymax*float(i)/float(imid) for i in range(imid)]+[dymax*float(n-i)/float(n-imid) for i in range(imid,n)]
       y0p=y0+dy
       #--minimization with y0p as initial conditions
-      res = minimize(cost_squared,y0p[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc),method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp})
+      res = minimize(cost_squared,y0p[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp})
       y_2 = np.append(np.insert(res['x'],0,dep_loc[1]),arr_loc[1])
-      quickest_time_2=cost_time(x0, y_2)
+      quickest_time_2=cost_time(x0, y_2, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed)
       if quickest_time_2 < quickest_time:
          quickest_time = quickest_time_2
          y = y_2   #--new best minimum
