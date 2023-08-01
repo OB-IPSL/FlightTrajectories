@@ -110,7 +110,7 @@ def process_grid(xr_u200, xr_v200, nbts,
        xr_u200['u'].values[t,:,:]=interpolate.griddata(xx_t_yy_t,xr_u200_values_t[t,:,:].flatten(),(xx,yy),method='nearest')
        xr_v200['v'].values[t,:,:]=interpolate.griddata(xx_t_yy_t,xr_v200_values_t[t,:,:].flatten(),(xx,yy),method='nearest')
 
-    return plate, xyz, lon_pole_t, lat_pole_t, lon_p1, lat_p1, lon_p2, lat_p2, xx, yy, lon_iagos_values, lat_iagos_values, rotated
+    return plate, xyz, lon_pole_t, lat_pole_t, lon_p1, lat_p1, lon_p2, lat_p2, xx, yy, lon_iagos_values, lat_iagos_values, rotated, lon_key_values, lat_key_values, lon_pole, lat_pole
 
 ##
 ##@jit(parallel=True)
@@ -399,7 +399,7 @@ def make_plot(rotated, lon_iagos_values, lat_iagos_values, lon_key_values, lat_k
               lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced,
               iagos_id, flightid_iagos, dep_airport_iagos, arr_airport_iagos, stryr, strmth, strday, # TODO hide inside dict..
               optim_level, dt_shortest, dt_quickest, dt_ed_LD, dt_iagos_2, pathout, yr, 
-              pressure_iagos,solution):
+              pressure_iagos,solution, ind, airspeed, dist_gcc, lat_pole, lon_pole, lon_iagos_cruising, lat_iagos_cruising):
         
     fig=plt.figure(figsize=(10,5))
     ax=fig.add_subplot(111, projection=rotated)
@@ -662,7 +662,7 @@ def opti(mth, inputfile, route, level,  maxiter,
         xr_v200_values=xr_v200['v'].values
         
         #--prepare plate grid
-        plate, xyz, lon_pole_t, lat_pole_t, lon_p1, lat_p1, lon_p2, lat_p2, xx, yy, lon_iagos_values, lat_iagos_values, rotated = process_grid(xr_u200, xr_v200, nbts, 
+        plate, xyz, lon_pole_t, lat_pole_t, lon_p1, lat_p1, lon_p2, lat_p2, xx, yy, lon_iagos_values, lat_iagos_values, rotated, lon_key_values, lat_key_values, lon_pole, lat_pole = process_grid(xr_u200, xr_v200, nbts, 
              lon_p1, lat_p1, lon_p2, lat_p2, lons_wind, lats_wind, 
              lon_iagos.values, lat_iagos.values, lon_key_values, lat_key_values)
 
@@ -791,7 +791,7 @@ def opti(mth, inputfile, route, level,  maxiter,
               lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced,
               iagos_id, flightid_iagos, dep_airport_iagos, arr_airport_iagos, stryr, strmth, strday, # TODO hide inside dict..
               optim_level, dt_shortest, dt_quickest, dt_ed_LD, dt_iagos_2, pathout, yr, 
-              pressure_iagos, solution)
+              pressure_iagos, solution, ind, airspeed, dist_gcc, lat_pole, lon_pole, lon_iagos_cruising, lat_iagos_cruising)
 
         
         #--save a pickle to redo the plots later if needed
