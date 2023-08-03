@@ -1,3 +1,5 @@
+from numba import jit
+
 import math
 import numpy as np
 import sys
@@ -119,6 +121,7 @@ def compdist(latp,lonp,lat1,lon1,lat2,lon2):
     #    return True
     return (haversine(latp,lonp,lat1,lon1) > haversine(latp,lonp,lat2,lon2))
 
+#@jit(parallel=True, nopython=True)
 def haversine(lat1,lon1,lat2,lon2):
     '''Computes the Haversine distance between two points in m'''
     dlat = math.pi*(lat2-lat1)/180.
@@ -129,6 +132,7 @@ def haversine(lat1,lon1,lat2,lon2):
     c= 2*np.arcsin(np.sqrt(arc))
     return R_E*c
 
+#@jit(parallel=True, nopython=True)
 def bearing(lat1, lon1, lat2, lon2):
     ''' Calculates the bearing between two points
     All arguments in degrees

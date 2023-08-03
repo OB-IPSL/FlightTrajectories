@@ -27,19 +27,19 @@ class ZermeloLonLat(ZermeloBase):
     def bearing_func(self, x1, y1, x2, y2):
         return lonlat_bearing(x1, y1, x2, y2)
 
-    def dpsi_dt_func(self, plon, plat, psi, airspeed, dtime):
+    def dpsi_dt_func(self, plon, plat, psi, airspeed, dtime,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced):
         ###u, v = self.wind_func(plon, plat, dtime)
-        u, v = self.wind_func(plon, plat)
+        u, v = self.wind_func(plon, plat,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced)
         I = self.cost_func(plon, plat, dtime)
 
         # Used for calculating numerical gradients
         dval = 0.25
         
         ###dudlon, dvdlon = self.wind_func(plon+dval, plat, dtime)
-        dudlon, dvdlon = self.wind_func(plon+dval, plat)
+        dudlon, dvdlon = self.wind_func(plon+dval, plat,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced)
         dudlon, dvdlon = (dudlon-u)/np.deg2rad(dval), (dvdlon-v)/np.deg2rad(dval)
         ###dudlat, dvdlat = self.wind_func(plon, plat+dval, dtime)
-        dudlat, dvdlat = self.wind_func(plon, plat+dval)
+        dudlat, dvdlat = self.wind_func(plon, plat+dval,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced)
         dudlat, dvdlat = (dudlat-u)/np.deg2rad(dval), (dvdlat-v)/np.deg2rad(dval)
 
         lat_r = np.deg2rad(plat)

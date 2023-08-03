@@ -34,17 +34,17 @@ class ZermeloBase(object):
     def position_update_func(self, dep_loc, psi, airspeed, u, v):
         return
 
-    def zermelo_path(self, dep_loc, initial_psi, nsteps, airspeed, dtime):
+    def zermelo_path(self, dep_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, initial_psi, nsteps, airspeed, dtime):
         loc = [dep_loc]
         psi = [initial_psi]
         cost = [np.zeros(np.atleast_1d(initial_psi).shape)]
-        u, v = self.wind_func(*loc[-1])
+        u, v = self.wind_func(*loc[-1],  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced)
         step = 0
 
         while step < nsteps:
-            dpsi_dt = self.dpsi_dt_func(loc[-1][0], loc[-1][1], psi[-1], airspeed, dtime)
+            dpsi_dt = self.dpsi_dt_func(loc[-1][0], loc[-1][1], psi[-1], airspeed, dtime,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced)
             psi.append(psi[-1]+dpsi_dt*self.timestep)
-            u, v = self.wind_func(*loc[-1])
+            u, v = self.wind_func(*loc[-1],  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced)
             newloc = self.position_update_func(loc[-1], psi[-1], airspeed, u, v)
             loc.append(newloc)
             cost.append(self.cost_func(loc[-1][0], loc[-1][1], dtime))
@@ -81,7 +81,7 @@ class ZermeloBase(object):
 
         return passing_side
 
-    def route_optimise(self, dep_loc, arr_loc, airspeed, dtime, debug=False):
+    def route_optimise(self, dep_loc, arr_loc,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtime, debug=False):
         solution=True  #--OB
         initial_psi = 90-self.bearing_func(*dep_loc, *arr_loc) # psi is angle, not bearing (not the best idea...)
         if isinstance(self.psi_range, int) or isinstance(self.psi_range, float):
@@ -103,7 +103,7 @@ class ZermeloBase(object):
         print('zermelo=',self.length_factor,total_dist,airspeed,self.timestep)
         nsteps = int(self.length_factor*(total_dist/airspeed)/self.timestep) 
 
-        loc, psi, cost = self.zermelo_path(start_loc, initial_psi, nsteps, airspeed, dtime)
+        loc, psi, cost = self.zermelo_path(start_loc,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, initial_psi, nsteps, airspeed, dtime)
 
         destination_dists = self.distance_func(loc[:, 0], loc[:, 1], arr_loc[0], arr_loc[1])
         index = np.zeros(len(initial_psi))
@@ -124,7 +124,7 @@ class ZermeloBase(object):
                 start_loc[0] = dep_loc[0]
                 start_loc[1] = dep_loc[1]
 
-                loc, psi, cost = self.zermelo_path(start_loc, initial_psi, nsteps, airspeed, dtime)
+                loc, psi, cost = self.zermelo_path(start_loc,  lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, initial_psi, nsteps, airspeed, dtime)
 
                 destination_dists = self.distance_func(loc[:, 0], loc[:, 1], arr_loc[0], arr_loc[1])
 
