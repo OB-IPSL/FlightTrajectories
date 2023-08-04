@@ -4,7 +4,7 @@ Flight trajectory optimisation
 Authors
 =======
 
-* Olivier Boucher & Ed Gryspeerdt
+* Olivier Boucher, Ed Gryspeerdt & Julien Karadayi
 
 Licence
 =======
@@ -15,6 +15,7 @@ Date
 ====
 
 February 2023
+Updated August 2023
 
 Installation
 ============
