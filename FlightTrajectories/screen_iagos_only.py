@@ -7,7 +7,7 @@ import cartopy
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 import great_circle_calculator.great_circle_calculator as gcc
-from misc_geo import haversine
+from FlightTrajectories.misc_geo import haversine
 
 #--path IAGOS files
 path_iagos='/bdd/IAGOS/'

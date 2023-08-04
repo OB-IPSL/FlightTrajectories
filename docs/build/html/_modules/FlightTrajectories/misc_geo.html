@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlightTrajectories.misc_geo &mdash; FlightTrajectories 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            FlightTrajectories
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../misc_geo.html">misc_geo</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">FlightTrajectories</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">FlightTrajectories.misc_geo</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for FlightTrajectories.misc_geo</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">jit</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">heapq</span> <span class="kn">import</span> <span class="n">heappush</span><span class="p">,</span> <span class="n">heappop</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c1">#--LMDZ formulation</span>
+<span class="c1">#--liquid water vapour saturation</span>
+<div class="viewcode-block" id="el_foeew"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.el_foeew">[docs]</a><span class="k">def</span> <span class="nf">el_foeew</span><span class="p">(</span><span class="n">Tair</span><span class="p">,</span><span class="n">celsius</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+   <span class="n">rtt</span> <span class="o">=</span> <span class="mf">273.16</span>
+   <span class="k">if</span> <span class="n">celsius</span><span class="p">:</span>
+     <span class="n">T</span><span class="o">=</span><span class="n">rtt</span><span class="o">+</span><span class="n">Tair</span> <span class="c1">#--K</span>
+   <span class="k">else</span><span class="p">:</span>
+     <span class="n">T</span><span class="o">=</span><span class="n">Tair</span>
+   <span class="n">restt</span> <span class="o">=</span> <span class="mf">611.14</span>
+   <span class="n">rkbol</span> <span class="o">=</span> <span class="mf">1.380658E-23</span>
+   <span class="n">rnavo</span> <span class="o">=</span> <span class="mf">6.0221367E+23</span>
+   <span class="n">r</span> <span class="o">=</span> <span class="n">rnavo</span><span class="o">*</span><span class="n">rkbol</span>
+   <span class="n">rmd</span> <span class="o">=</span> <span class="mf">28.9644</span>
+   <span class="n">rmv</span> <span class="o">=</span> <span class="mf">18.0153</span>
+   <span class="n">rd</span> <span class="o">=</span> <span class="mf">1000.</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">rmd</span>
+   <span class="n">rv</span> <span class="o">=</span> <span class="mf">1000.</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">rmv</span>
+   <span class="c1">#r2es = restt*rd/rv #--this is what is in the model</span>
+   <span class="n">r2es</span> <span class="o">=</span> <span class="n">restt</span>        <span class="c1">#--needed to predict sat vap pressure in Pa</span>
+   <span class="n">r3les</span> <span class="o">=</span> <span class="mf">17.269</span>
+   <span class="n">r4les</span> <span class="o">=</span> <span class="mf">35.86</span>
+   <span class="k">return</span> <span class="n">r2es</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">r3les</span><span class="o">*</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="n">rtt</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="n">r4les</span><span class="p">))</span></div>
+
+<span class="c1">#--LMDZ formulation</span>
+<span class="c1">#--ice water vapour saturation</span>
+<div class="viewcode-block" id="ei_foeew"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.ei_foeew">[docs]</a><span class="k">def</span> <span class="nf">ei_foeew</span><span class="p">(</span><span class="n">Tair</span><span class="p">,</span><span class="n">celsius</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+   <span class="n">rtt</span> <span class="o">=</span> <span class="mf">273.16</span>
+   <span class="k">if</span> <span class="n">celsius</span><span class="p">:</span>
+     <span class="n">T</span><span class="o">=</span><span class="n">rtt</span><span class="o">+</span><span class="n">Tair</span> <span class="c1">#--K</span>
+   <span class="k">else</span><span class="p">:</span>
+     <span class="n">T</span><span class="o">=</span><span class="n">Tair</span>
+   <span class="n">restt</span> <span class="o">=</span> <span class="mf">611.14</span>
+   <span class="n">rkbol</span> <span class="o">=</span> <span class="mf">1.380658E-23</span>
+   <span class="n">rnavo</span> <span class="o">=</span> <span class="mf">6.0221367E+23</span>
+   <span class="n">r</span> <span class="o">=</span> <span class="n">rnavo</span><span class="o">*</span><span class="n">rkbol</span>
+   <span class="n">rmd</span> <span class="o">=</span> <span class="mf">28.9644</span>
+   <span class="n">rmv</span> <span class="o">=</span> <span class="mf">18.0153</span>
+   <span class="n">rd</span> <span class="o">=</span> <span class="mf">1000.</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">rmd</span>
+   <span class="n">rv</span> <span class="o">=</span> <span class="mf">1000.</span><span class="o">*</span><span class="n">r</span><span class="o">/</span><span class="n">rmv</span>
+   <span class="c1">#r2es = restt*rd/rv #--this is what is in the model</span>
+   <span class="n">r2es</span> <span class="o">=</span> <span class="n">restt</span>        <span class="c1">#--needed better to predict sat vap pressure in Pa</span>
+   <span class="n">r3ies</span> <span class="o">=</span> <span class="mf">21.875</span>
+   <span class="n">r4ies</span> <span class="o">=</span> <span class="mf">7.66</span>
+   <span class="k">return</span> <span class="n">r2es</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">r3ies</span><span class="o">*</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="n">rtt</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">T</span><span class="o">-</span><span class="n">r4ies</span><span class="p">))</span></div>
+
+<span class="c1">#--compute G slope</span>
+<span class="c1">#--Scmidt-Appleman criterion</span>
+<div class="viewcode-block" id="G"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.G">[docs]</a><span class="k">def</span> <span class="nf">G</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+  <span class="c1">#--input: p pressure in Pa</span>
+  <span class="n">eps_w</span> <span class="o">=</span> <span class="mf">0.622</span> <span class="c1">#--ratio of molecular masses of water and dry air (kg H2O kg air -1)</span>
+  <span class="n">RCPD</span><span class="o">=</span><span class="mf">1004.</span>    <span class="c1">#--J/kg air/K</span>
+  <span class="n">EiH2O</span><span class="o">=</span><span class="mf">1.25</span>    <span class="c1">#--emission index of water vapour for kerosene (kg kg-1)</span>
+  <span class="n">Qheat</span><span class="o">=</span><span class="mf">43.E6</span>   <span class="c1">#--specific combustion heat for kerosene (J kg-1)</span>
+  <span class="n">eta</span><span class="o">=</span><span class="mf">0.3</span>       <span class="c1">#--aircraft efficiency</span>
+  <span class="c1">#--slope of dilution line in exhaust</span>
+  <span class="c1">#--kg H2O/kg fuel * J kg air-1 K-1 * Pa / (kg H2O / kg air * J kg fuel-1)</span>
+  <span class="n">Gcontr</span> <span class="o">=</span> <span class="n">EiH2O</span> <span class="o">*</span> <span class="n">RCPD</span> <span class="o">*</span> <span class="n">p</span> <span class="o">/</span> <span class="p">(</span><span class="n">eps_w</span><span class="o">*</span><span class="n">Qheat</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="n">eta</span><span class="p">))</span>
+  <span class="c1">#--Tcontr threshold (in K)</span>
+  <span class="n">Tcontr</span> <span class="o">=</span> <span class="mf">226.69</span><span class="o">+</span><span class="mf">9.43</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Gcontr</span><span class="o">-</span><span class="mf">0.053</span><span class="p">)</span><span class="o">+</span><span class="mf">0.72</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Gcontr</span><span class="o">-</span><span class="mf">0.053</span><span class="p">))</span><span class="o">**</span><span class="mf">2.0</span>
+  <span class="c1">#--return arrays</span>
+  <span class="k">return</span> <span class="n">Gcontr</span><span class="p">,</span> <span class="n">Tcontr</span></div>
+<span class="c1">#</span>
+<span class="c1">#--find nearest item in items to pivot</span>
+<div class="viewcode-block" id="nearest"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.nearest">[docs]</a><span class="k">def</span> <span class="nf">nearest</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">pivot</span><span class="p">):</span>
+   <span class="n">minitems</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">pivot</span><span class="p">))</span>
+   <span class="k">return</span> <span class="n">minitems</span><span class="p">,</span> <span class="n">items</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">minitems</span><span class="p">)</span></div>
+<span class="c1">#</span>
+<span class="c1">#--find nearest items in items to pivots - very very slow</span>
+<div class="viewcode-block" id="nearests"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.nearests">[docs]</a><span class="k">def</span> <span class="nf">nearests</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">pivots</span><span class="p">):</span>
+   <span class="n">closest_list</span><span class="o">=</span><span class="p">[]</span> <span class="p">;</span> <span class="n">closest_ind</span><span class="o">=</span><span class="p">[]</span>
+   <span class="k">for</span> <span class="n">pivot</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">pivots</span><span class="p">):</span>
+      <span class="n">closest</span><span class="p">,</span><span class="n">ind</span><span class="o">=</span><span class="n">nearest</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="p">),</span><span class="n">pivot</span><span class="p">)</span> 
+      <span class="n">closest_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">closest</span><span class="p">)</span> 
+      <span class="n">closest_ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">closest_list</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">closest_ind</span><span class="p">)</span></div>
+<span class="c1">#</span>
+<span class="c1">#--find array of indices of nearest for all items of A in B</span>
+<div class="viewcode-block" id="closest_argmin"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.closest_argmin">[docs]</a><span class="k">def</span> <span class="nf">closest_argmin</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">sidx_B</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">sorted_B</span> <span class="o">=</span> <span class="n">B</span><span class="p">[</span><span class="n">sidx_B</span><span class="p">]</span>
+    <span class="n">sorted_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">sorted_B</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+    <span class="n">sorted_idx</span><span class="p">[</span><span class="n">sorted_idx</span><span class="o">==</span><span class="n">L</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span><span class="o">-</span><span class="mi">1</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">sorted_idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">A</span><span class="o">-</span><span class="n">sorted_B</span><span class="p">[</span><span class="n">sorted_idx</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">A</span><span class="o">-</span><span class="n">sorted_B</span><span class="p">[</span><span class="n">sorted_idx</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">sidx_B</span><span class="p">[</span><span class="n">sorted_idx</span><span class="o">-</span><span class="n">mask</span><span class="p">]</span></div>
+<span class="c1">#</span>
+<span class="c1">#--spherical to cartesian coordinates</span>
+<div class="viewcode-block" id="sph2car"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.sph2car">[docs]</a><span class="k">def</span> <span class="nf">sph2car</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span><span class="n">phi</span><span class="p">):</span>
+<span class="c1">#--theta=latitude (in rad)</span>
+<span class="c1">#--phi=longitude (in rad)</span>
+   <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+   <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+   <span class="n">z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">])</span></div>
+<span class="c1">#</span>
+<span class="c1">#--cartesian to spherical coordinates</span>
+<div class="viewcode-block" id="car2sph"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.car2sph">[docs]</a><span class="k">def</span> <span class="nf">car2sph</span><span class="p">(</span><span class="n">xyz</span><span class="p">):</span>
+   <span class="c1">#--get coordinates from normalised vector</span>
+   <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="o">=</span><span class="n">xyz</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span><span class="nb">ord</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+   <span class="c1">#--cartesian to spherical (in rad)</span>
+   <span class="n">theta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+   <span class="n">phi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+   <span class="k">return</span> <span class="n">theta</span><span class="p">,</span><span class="n">phi</span></div>
+
+<span class="c1">#--Earth radius in m</span>
+<span class="n">R_E</span> <span class="o">=</span> <span class="mf">6372800.0</span> <span class="c1">#see http://rosettacode.org/wiki/Haversine_formula</span>
+
+<div class="viewcode-block" id="compdist"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.compdist">[docs]</a><span class="k">def</span> <span class="nf">compdist</span><span class="p">(</span><span class="n">latp</span><span class="p">,</span><span class="n">lonp</span><span class="p">,</span><span class="n">lat1</span><span class="p">,</span><span class="n">lon1</span><span class="p">,</span><span class="n">lat2</span><span class="p">,</span><span class="n">lon2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Compares the distance from p to 1 and 2. Returns True if 2 is closer&#39;&#39;&#39;</span>
+    <span class="c1">#print (haversine(latp,lonp,lat1,lon1), haversine(latp,lonp,lat2,lon2))</span>
+    <span class="c1">#if not np.isfinite(haversine(latp,lonp,lat1,lon1)):</span>
+    <span class="c1">#    return True</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">haversine</span><span class="p">(</span><span class="n">latp</span><span class="p">,</span><span class="n">lonp</span><span class="p">,</span><span class="n">lat1</span><span class="p">,</span><span class="n">lon1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">haversine</span><span class="p">(</span><span class="n">latp</span><span class="p">,</span><span class="n">lonp</span><span class="p">,</span><span class="n">lat2</span><span class="p">,</span><span class="n">lon2</span><span class="p">))</span></div>
+
+<span class="c1">#@jit(parallel=True, nopython=True)</span>
+<div class="viewcode-block" id="haversine"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.haversine">[docs]</a><span class="k">def</span> <span class="nf">haversine</span><span class="p">(</span><span class="n">lat1</span><span class="p">,</span><span class="n">lon1</span><span class="p">,</span><span class="n">lat2</span><span class="p">,</span><span class="n">lon2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Computes the Haversine distance between two points in m&#39;&#39;&#39;</span>
+    <span class="n">dlat</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">lat2</span><span class="o">-</span><span class="n">lat1</span><span class="p">)</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">lon2</span><span class="o">-</span><span class="n">lon1</span><span class="p">)</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">lat1</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">lat2</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">arc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlat</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat1</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">c</span><span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">arc</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">R_E</span><span class="o">*</span><span class="n">c</span></div>
+
+<span class="c1">#@jit(parallel=True, nopython=True)</span>
+<div class="viewcode-block" id="bearing"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.bearing">[docs]</a><span class="k">def</span> <span class="nf">bearing</span><span class="p">(</span><span class="n">lat1</span><span class="p">,</span> <span class="n">lon1</span><span class="p">,</span> <span class="n">lat2</span><span class="p">,</span> <span class="n">lon2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Calculates the bearing between two points</span>
+<span class="sd">    All arguments in degrees</span>
+<span class="sd">    Code from: https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/&#39;&#39;&#39;</span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lon2</span><span class="o">-</span><span class="n">lon1</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat1</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat1</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dlon</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="lonlat_bearing"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.lonlat_bearing">[docs]</a><span class="k">def</span> <span class="nf">lonlat_bearing</span><span class="p">(</span><span class="n">lon1</span><span class="p">,</span> <span class="n">lat1</span><span class="p">,</span> <span class="n">lon2</span><span class="p">,</span> <span class="n">lat2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Calculates the bearing between two points</span>
+<span class="sd">    NOTE: switched lon/lat order to match TASIC code</span>
+<span class="sd">    All arguments in degrees</span>
+<span class="sd">    Code from: https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/&#39;&#39;&#39;</span>
+    <span class="n">dlon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lon2</span><span class="o">-</span><span class="n">lon1</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">dlon</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat1</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat1</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat2</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">dlon</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="theta"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.theta">[docs]</a><span class="k">def</span> <span class="nf">theta</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span><span class="n">pressure</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Calculated potential temperature</span>
+<span class="sd">    Args:</span>
+<span class="sd">       temp in K</span>
+<span class="sd">       presure in hPa&#39;&#39;&#39;</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">temperature</span> <span class="o">*</span> <span class="p">(</span><span class="mi">100000</span><span class="o">/</span><span class="n">pressure</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.288</span>
+    <span class="k">return</span> <span class="n">theta</span></div>
+
+<div class="viewcode-block" id="coordinate_rotate"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.coordinate_rotate">[docs]</a><span class="k">def</span> <span class="nf">coordinate_rotate</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">centre_lon</span><span class="p">,</span> <span class="n">centre_lat</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Rotates a set of spherical coordinates so that the centre location</span>
+<span class="sd">    is on the equator&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">centre_lon</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">:</span>
+        <span class="n">icentre_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">centre_lon</span><span class="o">-</span><span class="mi">90</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">icentre_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">centre_lon</span><span class="p">)</span>
+    <span class="n">icentre_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">centre_lat</span><span class="p">)</span>
+    <span class="n">ilon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="n">ilat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">ilon</span> <span class="o">-</span> <span class="n">icentre_lon</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ilat</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ilat</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">x3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ilat</span><span class="p">)</span>
+
+    <span class="n">x1p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">icentre_lat</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">icentre_lat</span><span class="p">)</span> <span class="o">*</span> <span class="n">x3</span>
+    <span class="n">x2p</span> <span class="o">=</span> <span class="n">x2</span>
+    <span class="n">x3p</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">icentre_lat</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">icentre_lat</span><span class="p">)</span> <span class="o">*</span> <span class="n">x3</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">centre_lon</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">10</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">x2p</span><span class="p">,</span> <span class="n">x1p</span><span class="p">)),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">x3p</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">x3p</span><span class="p">)),</span>
+                <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">x2p</span><span class="p">,</span> <span class="n">x1p</span><span class="p">)))</span></div>
+    
+<div class="viewcode-block" id="hKDTree"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.hKDTree">[docs]</a><span class="k">class</span> <span class="nc">hKDTree</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    hkd-tree for quick nearest-neighbor lookup</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_lat</span><span class="p">,</span> <span class="n">data_lon</span><span class="p">,</span> <span class="n">leafsize</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a haversine distance kd-tree.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data_lat, data_lon</span>
+<span class="sd">                 : array_like, shape (n)</span>
+<span class="sd">            The data points to be indexed. This array is not copied, and</span>
+<span class="sd">            so modifying this data will result in bogus results.</span>
+<span class="sd">        leafsize : positive int</span>
+<span class="sd">            The number of points at which the algorithm switches over to</span>
+<span class="sd">            brute-force.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data_lat</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">],</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data_lon</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leafsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">leafsize</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafsize</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;leafsize must be at least 1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__build</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mins</span><span class="p">)</span>
+
+<div class="viewcode-block" id="hKDTree.node"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.hKDTree.node">[docs]</a>    <span class="k">class</span> <span class="nc">node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">id</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">id</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">id</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">id</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">id</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+<div class="viewcode-block" id="hKDTree.leafnode"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.hKDTree.leafnode">[docs]</a>    <span class="k">class</span> <span class="nc">leafnode</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+<div class="viewcode-block" id="hKDTree.innernode"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.hKDTree.innernode">[docs]</a>    <span class="k">class</span> <span class="nc">innernode</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_dim</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">less</span><span class="p">,</span> <span class="n">greater</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split_dim</span> <span class="o">=</span> <span class="n">split_dim</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">less</span> <span class="o">=</span> <span class="n">less</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">greater</span> <span class="o">=</span> <span class="n">greater</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="n">less</span><span class="o">.</span><span class="n">children</span><span class="o">+</span><span class="n">greater</span><span class="o">.</span><span class="n">children</span></div>
+
+    <span class="k">def</span> <span class="nf">__build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">maxes</span><span class="p">,</span> <span class="n">mins</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">&lt;=</span><span class="bp">self</span><span class="o">.</span><span class="n">leafsize</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hKDTree</span><span class="o">.</span><span class="n">leafnode</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="c1">#maxes = np.amax(data,axis=0)</span>
+            <span class="c1">#mins = np.amin(data,axis=0)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">maxes</span><span class="o">-</span><span class="n">mins</span><span class="p">)</span>
+            <span class="n">maxval</span> <span class="o">=</span> <span class="n">maxes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="n">minval</span> <span class="o">=</span> <span class="n">mins</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">maxval</span><span class="o">==</span><span class="n">minval</span><span class="p">:</span>
+                <span class="c1"># all points are identical; warn user?</span>
+                <span class="k">return</span> <span class="n">hKDTree</span><span class="o">.</span><span class="n">leafnode</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="n">d</span><span class="p">]</span>
+
+            <span class="c1"># sliding midpoint rule; see Maneewongvatana and Mount 1999</span>
+            <span class="c1"># for arguments that this is a good idea.</span>
+            <span class="n">split</span> <span class="o">=</span> <span class="p">(</span><span class="n">maxval</span><span class="o">+</span><span class="n">minval</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">less_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">data</span><span class="o">&lt;=</span><span class="n">split</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">greater_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">data</span><span class="o">&gt;</span><span class="n">split</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">less_idx</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">split</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">less_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">data</span><span class="o">&lt;=</span><span class="n">split</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">greater_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">data</span><span class="o">&gt;</span><span class="n">split</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">greater_idx</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">split</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">less_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">data</span><span class="o">&lt;</span><span class="n">split</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">greater_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">data</span><span class="o">&gt;=</span><span class="n">split</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">less_idx</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># _still_ zero? all must have the same value</span>
+                <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">data</span><span class="o">==</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;Troublesome data array: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data</span>
+                <span class="n">split</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">less_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">greater_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">lessmaxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">maxes</span><span class="p">)</span>
+            <span class="n">lessmaxes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">split</span>
+            <span class="n">greatermins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">mins</span><span class="p">)</span>
+            <span class="n">greatermins</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">split</span>
+            <span class="k">return</span> <span class="n">hKDTree</span><span class="o">.</span><span class="n">innernode</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__build</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="n">less_idx</span><span class="p">],</span><span class="n">lessmaxes</span><span class="p">,</span><span class="n">mins</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__build</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="n">greater_idx</span><span class="p">],</span><span class="n">maxes</span><span class="p">,</span><span class="n">greatermins</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">):</span>
+
+        <span class="n">side_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">maxes</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mins</span><span class="o">-</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">!=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+            <span class="n">side_distances</span><span class="o">**=</span><span class="n">p</span>
+            <span class="n">min_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">side_distances</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">min_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">side_distances</span><span class="p">)</span>
+
+        <span class="c1"># priority queue for chasing nodes</span>
+        <span class="c1"># entries are:</span>
+        <span class="c1">#  minimum distance between the cell and the target</span>
+        <span class="c1">#  distances between the nearest side of the cell and the target</span>
+        <span class="c1">#  the head node of the cell</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">[(</span><span class="n">min_distance</span><span class="p">,</span>
+              <span class="nb">tuple</span><span class="p">(</span><span class="n">side_distances</span><span class="p">),</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">)]</span>
+        <span class="c1"># priority queue for the nearest neighbors</span>
+        <span class="c1"># furthest known neighbor first</span>
+        <span class="c1"># entries are (-distance**p, i)</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">eps</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">epsfac</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">p</span><span class="o">==</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+            <span class="n">epsfac</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">eps</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">epsfac</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">eps</span><span class="p">)</span><span class="o">**</span><span class="n">p</span>
+
+        <span class="k">if</span> <span class="n">p</span><span class="o">!=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="ow">and</span> <span class="n">distance_upper_bound</span><span class="o">!=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+            <span class="n">distance_upper_bound</span> <span class="o">=</span> <span class="n">distance_upper_bound</span><span class="o">**</span><span class="n">p</span>
+
+        <span class="k">while</span> <span class="n">q</span><span class="p">:</span>
+            <span class="n">min_distance</span><span class="p">,</span> <span class="n">side_distances</span><span class="p">,</span> <span class="n">node</span> <span class="o">=</span> <span class="n">heappop</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">hKDTree</span><span class="o">.</span><span class="n">leafnode</span><span class="p">):</span>
+                <span class="c1"># brute-force</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span>
+                <span class="n">ds</span> <span class="o">=</span> <span class="n">haversine</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">data</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:][:,</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:][:,</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">ds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&lt;</span><span class="n">distance_upper_bound</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)</span><span class="o">==</span><span class="n">k</span><span class="p">:</span>
+                            <span class="n">heappop</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)</span>
+                        <span class="n">heappush</span><span class="p">(</span><span class="n">neighbors</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">node</span><span class="o">.</span><span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)</span><span class="o">==</span><span class="n">k</span><span class="p">:</span>
+                            <span class="n">distance_upper_bound</span> <span class="o">=</span> <span class="o">-</span><span class="n">neighbors</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># we don&#39;t push cells that are too far onto the queue at all,</span>
+                <span class="c1"># but since the distance_upper_bound decreases, we might get</span>
+                <span class="c1"># here even if the cell&#39;s too far</span>
+                <span class="k">if</span> <span class="n">min_distance</span><span class="o">&gt;</span><span class="n">distance_upper_bound</span><span class="o">*</span><span class="n">epsfac</span><span class="p">:</span>
+                    <span class="c1"># since this is the nearest cell, we&#39;re done, bail out</span>
+                    <span class="k">break</span>
+                <span class="c1"># compute minimum distances to the children and push them on</span>
+                <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span><span class="o">&lt;</span><span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="p">:</span>
+                    <span class="n">near</span><span class="p">,</span> <span class="n">far</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">less</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">greater</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">near</span><span class="p">,</span> <span class="n">far</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">greater</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">less</span>
+
+                <span class="c1"># near child is at the same distance as the current node</span>
+                <span class="n">heappush</span><span class="p">(</span><span class="n">q</span><span class="p">,(</span><span class="n">min_distance</span><span class="p">,</span> <span class="n">side_distances</span><span class="p">,</span> <span class="n">near</span><span class="p">))</span>
+
+                <span class="c1"># far child is further by an amount depending only</span>
+                <span class="c1"># on the split value</span>
+                <span class="n">sd</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">side_distances</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">:</span>
+                    <span class="n">min_distance</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_distance</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]))</span>
+                <span class="k">elif</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">sd</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">])</span>
+                    <span class="n">min_distance</span> <span class="o">=</span> <span class="n">min_distance</span> <span class="o">-</span> <span class="n">side_distances</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span> <span class="o">+</span> <span class="n">sd</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sd</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">])</span><span class="o">**</span><span class="n">p</span>
+                    <span class="n">min_distance</span> <span class="o">=</span> <span class="n">min_distance</span> <span class="o">-</span> <span class="n">side_distances</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span> <span class="o">+</span> <span class="n">sd</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">]</span>
+
+                <span class="c1"># far child might be too far, if so, don&#39;t bother pushing it</span>
+                <span class="k">if</span> <span class="n">min_distance</span><span class="o">&lt;=</span><span class="n">distance_upper_bound</span><span class="o">*</span><span class="n">epsfac</span><span class="p">:</span>
+                    <span class="n">heappush</span><span class="p">(</span><span class="n">q</span><span class="p">,(</span><span class="n">min_distance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sd</span><span class="p">),</span> <span class="n">far</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">([(</span><span class="o">-</span><span class="n">d</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">])</span>
+        
+<div class="viewcode-block" id="hKDTree.query"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.hKDTree.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_lats</span><span class="p">,</span> <span class="n">x_lons</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        query the kd-tree for nearest neighbors</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        x_lats,x_lons</span>
+<span class="sd">            : array-like, (n)</span>
+<span class="sd">            An array of points to query.</span>
+<span class="sd">        k : integer</span>
+<span class="sd">            The number of nearest neighbors to return.</span>
+<span class="sd">        eps : nonnegative float</span>
+<span class="sd">            Return approximate nearest neighbors; the kth returned value</span>
+<span class="sd">            is guaranteed to be no further than (1+eps) times the</span>
+<span class="sd">            distance to the real kth nearest neighbor.</span>
+<span class="sd">        distance_upper_bound : nonnegative float</span>
+<span class="sd">            Return only neighbors within this distance. This is used to prune</span>
+<span class="sd">            tree searches, so if you are doing a series of nearest-neighbor</span>
+<span class="sd">            queries, it may help to supply the distance to the nearest neighbor</span>
+<span class="sd">            of the most recent point.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        d : array of floats</span>
+<span class="sd">            The distances to the nearest neighbors.</span>
+<span class="sd">            If x has shape tuple+(self.m,), then d has shape tuple if</span>
+<span class="sd">            k is one, or tuple+(k,) if k is larger than one.  Missing</span>
+<span class="sd">            neighbors are indicated with infinite distances.  If k is None,</span>
+<span class="sd">            then d is an object array of shape tuple, containing lists</span>
+<span class="sd">            of distances. In either case the hits are sorted by distance</span>
+<span class="sd">            (nearest first).</span>
+<span class="sd">        i : array of integers</span>
+<span class="sd">            The locations of the neighbors in self.data. i is the same</span>
+<span class="sd">            shape as d.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_lats</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_lons</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x must consist of vectors of length </span><span class="si">%d</span><span class="s2"> but has shape </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only p-norms with 1&lt;=p&lt;=infinity permitted&quot;</span><span class="p">)</span>
+        <span class="n">retshape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">retshape</span><span class="o">!=</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">dd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+                <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">k</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">dd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="o">+</span><span class="p">(</span><span class="n">k</span><span class="p">,),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+                <span class="n">dd</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+                <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="o">+</span><span class="p">(</span><span class="n">k</span><span class="p">,),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+                <span class="n">ii</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">k</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">dd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+                <span class="n">dd</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+                <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+                <span class="n">ii</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Requested </span><span class="si">%s</span><span class="s2"> nearest neighbors; acceptable numbers are integers greater than or equal to one, or None&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">retshape</span><span class="p">):</span>
+                <span class="n">hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">distance_upper_bound</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">dd</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+                    <span class="n">ii</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">k</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">)):</span>
+                        <span class="n">dd</span><span class="p">[</span><span class="n">c</span><span class="o">+</span><span class="p">(</span><span class="n">j</span><span class="p">,)],</span> <span class="n">ii</span><span class="p">[</span><span class="n">c</span><span class="o">+</span><span class="p">(</span><span class="n">j</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">hits</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">k</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">dd</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">ii</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">dd</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+                        <span class="n">ii</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+            <span class="k">return</span> <span class="n">dd</span><span class="p">,</span> <span class="n">ii</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">distance_upper_bound</span><span class="o">=</span><span class="n">distance_upper_bound</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">],</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">k</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">hits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+            <span class="k">elif</span> <span class="n">k</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">dd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+                <span class="n">dd</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+                <span class="n">ii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+                <span class="n">ii</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hits</span><span class="p">)):</span>
+                    <span class="n">dd</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">ii</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">hits</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">dd</span><span class="p">,</span> <span class="n">ii</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Requested </span><span class="si">%s</span><span class="s2"> nearest neighbors; acceptable numbers are integers greater than or equal to one, or None&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__query_ball_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mins</span><span class="p">)</span>
+        
+        <span class="k">def</span> <span class="nf">traverse_checking</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">rect</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">rect</span><span class="o">.</span><span class="n">min_distance_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">r</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">eps</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">elif</span> <span class="n">rect</span><span class="o">.</span><span class="n">max_distance_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">eps</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">traverse_no_checking</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">hKDTree</span><span class="o">.</span><span class="n">leafnode</span><span class="p">):</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">idx</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">idx</span><span class="p">[</span><span class="n">haversine</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:][:,</span><span class="mi">0</span><span class="p">],</span>
+                                          <span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,:][:,</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">r</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">less</span><span class="p">,</span> <span class="n">greater</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">split_dim</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">traverse_checking</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">less</span><span class="p">,</span> <span class="n">less</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="n">traverse_checking</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">greater</span><span class="p">,</span> <span class="n">greater</span><span class="p">)</span>
+            
+        <span class="k">def</span> <span class="nf">traverse_no_checking</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">hKDTree</span><span class="o">.</span><span class="n">leafnode</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">idx</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">traverse_no_checking</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">less</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="n">traverse_no_checking</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">greater</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">traverse_checking</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">,</span> <span class="n">R</span><span class="p">)</span>
+
+<div class="viewcode-block" id="hKDTree.query_ball_point"><a class="viewcode-back" href="../../misc_geo.html#FlightTrajectories.misc_geo.hKDTree.query_ball_point">[docs]</a>    <span class="k">def</span> <span class="nf">query_ball_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_lats</span><span class="p">,</span> <span class="n">x_lons</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find all points within distance r of point(s) x.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : array_like, shape tuple + (self.m,)</span>
+<span class="sd">            The point or points to search for neighbors of.</span>
+<span class="sd">        r : positive float</span>
+<span class="sd">            The radius of points to return.</span>
+<span class="sd">        p : float, optional</span>
+<span class="sd">            Which Minkowski p-norm to use.  Should be in the range [1, inf].</span>
+<span class="sd">        eps : nonnegative float, optional</span>
+<span class="sd">            Approximate search. Branches of the tree are not explored if their</span>
+<span class="sd">            nearest points are further than ``r / (1 + eps)``, and branches are</span>
+<span class="sd">            added in bulk if their furthest points are nearer than</span>
+<span class="sd">            ``r * (1 + eps)``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        results : list or array of lists</span>
+<span class="sd">            If `x` is a single point, returns a list of the indices of the</span>
+<span class="sd">            neighbors of `x`. If `x` is an array of points, returns an object</span>
+<span class="sd">            array of shape tuple containing lists of neighbors.</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        If you have many points whose neighbors you want to find, you may save</span>
+<span class="sd">        substantial amounts of time by putting them in a KDTree and using</span>
+<span class="sd">        query_ball_tree.</span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from scipy import spatial</span>
+<span class="sd">        &gt;&gt;&gt; x, y = np.mgrid[0:4, 0:4]</span>
+<span class="sd">        &gt;&gt;&gt; points = zip(x.ravel(), y.ravel())</span>
+<span class="sd">        &gt;&gt;&gt; tree = spatial.KDTree(points)</span>
+<span class="sd">        &gt;&gt;&gt; tree.query_ball_point([2, 0], 1)</span>
+<span class="sd">        [4, 8, 9, 12]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_lats</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_lons</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Searching for a </span><span class="si">%d</span><span class="s2">-dimensional point in a &quot;</span>
+                             <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-dimensional KDTree&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query_ball_point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">retshape</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">retshape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">object</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">retshape</span><span class="p">):</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query_ball_point</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Olivier Boucher, Ed Gryspeerdt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

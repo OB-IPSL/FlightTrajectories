@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>misc_geo &mdash; FlightTrajectories 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to FlightTrajectories’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            FlightTrajectories
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">misc_geo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-FlightTrajectories.misc_geo">Misc Geo</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.el_foeew"><code class="docutils literal notranslate"><span class="pre">el_foeew()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.ei_foeew"><code class="docutils literal notranslate"><span class="pre">ei_foeew()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.G"><code class="docutils literal notranslate"><span class="pre">G()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.nearest"><code class="docutils literal notranslate"><span class="pre">nearest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.nearests"><code class="docutils literal notranslate"><span class="pre">nearests()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.closest_argmin"><code class="docutils literal notranslate"><span class="pre">closest_argmin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.sph2car"><code class="docutils literal notranslate"><span class="pre">sph2car()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.car2sph"><code class="docutils literal notranslate"><span class="pre">car2sph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.compdist"><code class="docutils literal notranslate"><span class="pre">compdist()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.haversine"><code class="docutils literal notranslate"><span class="pre">haversine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.bearing"><code class="docutils literal notranslate"><span class="pre">bearing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.lonlat_bearing"><code class="docutils literal notranslate"><span class="pre">lonlat_bearing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.theta"><code class="docutils literal notranslate"><span class="pre">theta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.coordinate_rotate"><code class="docutils literal notranslate"><span class="pre">coordinate_rotate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree"><code class="docutils literal notranslate"><span class="pre">hKDTree</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.node"><code class="docutils literal notranslate"><span class="pre">hKDTree.node</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.leafnode"><code class="docutils literal notranslate"><span class="pre">hKDTree.leafnode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.innernode"><code class="docutils literal notranslate"><span class="pre">hKDTree.innernode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.query"><code class="docutils literal notranslate"><span class="pre">hKDTree.query()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.query_ball_point"><code class="docutils literal notranslate"><span class="pre">hKDTree.query_ball_point()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FlightTrajectories</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">misc_geo</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/misc_geo.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="misc-geo">
+<span id="id1"></span><h1>misc_geo<a class="headerlink" href="#misc-geo" title="Permalink to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#module-FlightTrajectories.misc_geo" id="id3">Misc Geo</a></p></li>
+</ul>
+</nav>
+<section id="module-FlightTrajectories.misc_geo">
+<span id="id2"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Misc Geo</a><a class="headerlink" href="#module-FlightTrajectories.misc_geo" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.el_foeew">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">el_foeew</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Tair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">celsius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#el_foeew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.el_foeew" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.ei_foeew">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">ei_foeew</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Tair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">celsius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#ei_foeew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.ei_foeew" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.G">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">G</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#G"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.G" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.nearest">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">nearest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pivot</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#nearest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.nearest" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.nearests">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">nearests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pivots</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#nearests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.nearests" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.closest_argmin">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">closest_argmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#closest_argmin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.closest_argmin" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.sph2car">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">sph2car</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#sph2car"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.sph2car" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.car2sph">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">car2sph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyz</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#car2sph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.car2sph" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.compdist">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">compdist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#compdist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.compdist" title="Permalink to this definition"></a></dt>
+<dd><p>Compares the distance from p to 1 and 2. Returns True if 2 is closer</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.haversine">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">haversine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#haversine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.haversine" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the Haversine distance between two points in m</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.bearing">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">bearing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#bearing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.bearing" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the bearing between two points
+All arguments in degrees
+Code from: <a class="reference external" href="https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/">https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.lonlat_bearing">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">lonlat_bearing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#lonlat_bearing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.lonlat_bearing" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the bearing between two points
+NOTE: switched lon/lat order to match TASIC code
+All arguments in degrees
+Code from: <a class="reference external" href="https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/">https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.theta">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pressure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.theta" title="Permalink to this definition"></a></dt>
+<dd><p>Calculated potential temperature
+Args:</p>
+<blockquote>
+<div><p>temp in K
+presure in hPa</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.coordinate_rotate">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">coordinate_rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centre_lat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#coordinate_rotate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.coordinate_rotate" title="Permalink to this definition"></a></dt>
+<dd><p>Rotates a set of spherical coordinates so that the centre location
+is on the equator</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.hKDTree">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_geo.</span></span><span class="sig-name descname"><span class="pre">hKDTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leafsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#hKDTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.hKDTree" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>hkd-tree for quick nearest-neighbor lookup</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.hKDTree.node">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">node</span></span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#hKDTree.node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.hKDTree.node" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.hKDTree.leafnode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">leafnode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#hKDTree.leafnode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.hKDTree.leafnode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.node" title="FlightTrajectories.misc_geo.hKDTree.node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.hKDTree.innernode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">innernode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">less</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greater</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#hKDTree.innernode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.hKDTree.innernode" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#FlightTrajectories.misc_geo.hKDTree.node" title="FlightTrajectories.misc_geo.hKDTree.node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node</span></code></a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.hKDTree.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_lats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_lons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_upper_bound</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#hKDTree.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.hKDTree.query" title="Permalink to this definition"></a></dt>
+<dd><p>query the kd-tree for nearest neighbors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_lats</strong> – : array-like, (n)
+An array of points to query.</p></li>
+<li><p><strong>x_lons</strong> – : array-like, (n)
+An array of points to query.</p></li>
+<li><p><strong>k</strong> (<em>integer</em>) – The number of nearest neighbors to return.</p></li>
+<li><p><strong>eps</strong> (<em>nonnegative float</em>) – Return approximate nearest neighbors; the kth returned value
+is guaranteed to be no further than (1+eps) times the
+distance to the real kth nearest neighbor.</p></li>
+<li><p><strong>distance_upper_bound</strong> (<em>nonnegative float</em>) – Return only neighbors within this distance. This is used to prune
+tree searches, so if you are doing a series of nearest-neighbor
+queries, it may help to supply the distance to the nearest neighbor
+of the most recent point.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>d</strong> (<em>array of floats</em>) – The distances to the nearest neighbors.
+If x has shape tuple+(self.m,), then d has shape tuple if
+k is one, or tuple+(k,) if k is larger than one.  Missing
+neighbors are indicated with infinite distances.  If k is None,
+then d is an object array of shape tuple, containing lists
+of distances. In either case the hits are sorted by distance
+(nearest first).</p></li>
+<li><p><strong>i</strong> (<em>array of integers</em>) – The locations of the neighbors in self.data. i is the same
+shape as d.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_geo.hKDTree.query_ball_point">
+<span class="sig-name descname"><span class="pre">query_ball_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_lats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_lons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_geo.html#hKDTree.query_ball_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_geo.hKDTree.query_ball_point" title="Permalink to this definition"></a></dt>
+<dd><p>Find all points within distance r of point(s) x.
+:param x: The point or points to search for neighbors of.
+:type x: array_like, shape tuple + (self.m,)
+:param r: The radius of points to return.
+:type r: positive float
+:param p: Which Minkowski p-norm to use.  Should be in the range [1, inf].
+:type p: float, optional
+:param eps: Approximate search. Branches of the tree are not explored if their</p>
+<blockquote>
+<div><p>nearest points are further than <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">/</span> <span class="pre">(1</span> <span class="pre">+</span> <span class="pre">eps)</span></code>, and branches are
+added in bulk if their furthest points are nearer than
+<code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">*</span> <span class="pre">(1</span> <span class="pre">+</span> <span class="pre">eps)</span></code>.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>results</strong> (<em>list or array of lists</em>) – If <cite>x</cite> is a single point, returns a list of the indices of the
+neighbors of <cite>x</cite>. If <cite>x</cite> is an array of points, returns an object
+array of shape tuple containing lists of neighbors.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If you have many points whose neighbors you want to find, you may save
+substantial amounts of time by putting them in a KDTree and using
+query_ball_tree.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">spatial</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">[4, 8, 9, 12]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to FlightTrajectories’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Olivier Boucher, Ed Gryspeerdt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
