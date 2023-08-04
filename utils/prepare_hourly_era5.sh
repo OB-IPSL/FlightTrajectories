@@ -24,8 +24,8 @@ yr2=$((yr+1))
 
 rm -f ${dirout}/${var}.??????.ap1e5.GLOBAL_025.nc
 
-#for mth in {01..12}
-for mth in {10..10}
+#--process months 1 to 12 for year yr
+for mth in {01..12}
 do
 for var in u v r ta
 do
@@ -36,19 +36,21 @@ cdo sellonlatbox,${lonmin},${lonmax},${latmin},${latmax} -sellevel,175,200,225,2
 done
 done
 
-#for mth in {01..01}
-#do
-#for var in u v r ta
-#do
-#echo $yr2 $mth
-#dirin=/bdd/ERA5/NETCDF/GLOBAL_025/hourly/AN_PL/${yr2}
-#file=${var}.${yr2}${mth}.ap1e5.GLOBAL_025.nc
-#cdo sellonlatbox,${lonmin},${lonmax},${latmin},${latmax} -sellevel,175,200,225,250 ${dirin}/${file} ${dirout}/${file}
-#done
-#done
+#--process month 1 for year yr+1
+for mth in {01..01}
+do
+for var in u v r ta
+do
+echo $yr2 $mth
+dirin=/bdd/ERA5/NETCDF/GLOBAL_025/hourly/AN_PL/${yr2}
+file=${var}.${yr2}${mth}.ap1e5.GLOBAL_025.nc
+cdo sellonlatbox,${lonmin},${lonmax},${latmin},${latmax} -sellevel,175,200,225,250 ${dirin}/${file} ${dirout}/${file}
+done
+done
 
-#for var in u v r ta
-#do
-#cdo mergetime ${dirout}/${var}.${yr}??.ap1e5.GLOBAL_025.nc ${dirout}/${var}.${yr2}01.*.GLOBAL_025.nc ${dirout}/${var}.${yr}.${ext}.nc
-#rm -f ${dirout}/${var}.${yr}??.*.GLOBAL_025.nc ${dirout}/${var}.${yr2}01.*.GLOBAL_025.nc
-#done
+#--merge all the files together
+for var in u v r ta
+do
+cdo mergetime ${dirout}/${var}.${yr}??.ap1e5.GLOBAL_025.nc ${dirout}/${var}.${yr2}01.*.GLOBAL_025.nc ${dirout}/${var}.${yr}.${ext}.nc
+rm -f ${dirout}/${var}.${yr}??.*.GLOBAL_025.nc ${dirout}/${var}.${yr2}01.*.GLOBAL_025.nc
+done

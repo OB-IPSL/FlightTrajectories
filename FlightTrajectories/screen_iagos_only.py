@@ -10,26 +10,33 @@ import great_circle_calculator.great_circle_calculator as gcc
 from FlightTrajectories.misc_geo import haversine
 
 #--path IAGOS files
-path_iagos='/bdd/IAGOS/netcdf/'
-lenstr=62
+path_iagos='/bdd/IAGOS/netcdf/'  #--path where IAGOS files are located
+lenstr=62                        #--length of string before flight ID
 #
-#--path out
-pathout='FLIGHTS/'
+#--paths out
+pathout='../FLIGHTS/'
+pathgraph='../GRAPHS/'
 #
 #--airlines
 airlines=['Air France','Cathay Pacific','China Airlines','Hawaiian Airlines','Lufthansa']
 #
-#--flight IDs
-flightids=['D-AIGT','D-AIKO','D-AIHE','N384HA','B-18316','B-18317','B-18806','F-GLZU','F-GZCO','B-HLR']
+#--aircraft IDs and type
+aircraft_ids=['D-AIGT','D-AIKO','D-AIHE','N384HA','B-18316','B-18317','B-18806','F-GLZU','F-GZCO','B-HLR']
+aircraft_types=['A340-313','A330-343','A340-642','A330-243','A330-302','A330-302','A340-313','A340-313','A330-203','A330-343']
 #
 #--year min and max
 yr_min=2018
-yr_max=2022
+yr_max=2021
 #
 #--minimum distance in m to be considered for a meaningful IAGOS flight to optimise (4000 km)
-#distmin = 4000000.
 distmin = 2500000.
 print('Minimal cruising distance to screen IAGOS flights=',distmin)
+#
+#--physical constants
+gamma=1.4               #--specific heat ratio
+kb=1.38e-23             #--Boltzmann constant
+air_density=29.e-3      #--air density (kg/m3)
+avogadro=6.02e23        #--Avogadro number
 #
 #--regions
 regions=['europe','southamerica','northamerica','centralamerica','asia','centralasia',\
@@ -119,8 +126,8 @@ for region in regions:
 fig.gca().coastlines()
 fig.gca().add_feature(cartopy.feature.OCEAN,facecolor=("lightblue"),alpha=1)
 fig.gca().add_feature(cartopy.feature.BORDERS,color="red",linewidth=0.3)
-plt.savefig('GRAPHS/world_map_with_regions.png')
-#plt.show()
+plt.savefig(pathgraph+'world_map_with_regions.png')
+plt.close()
 #
 #--is in region
 def isinregion(region,lon,lat):
@@ -140,22 +147,28 @@ def isinregion(region,lon,lat):
 df_airline=pd.DataFrame({"Airline": [airline for airline in airlines]})
 df_airline.set_index('Airline',inplace=True)
 #
-df_flightid=pd.DataFrame({"Flight ID": [flightid for flightid in flightids]})
-df_flightid.set_index('Flight ID',inplace=True)
+df_aircraft=pd.DataFrame({"Aircraft ID": [aircraft_id for aircraft_id in aircraft_ids],\
+                             "Aircraft type": [aircraft_type for aircraft_type in aircraft_types]})
+df_aircraft.set_index('Aircraft ID',inplace=True)
+#
+groundspeed_ave_list=[]
+groundspeed_std_list=[]
+airspeed_ave_list=[]
+airspeed_std_list=[]
+machnumber_ave_list=[]
+machnumber_std_list=[]
 #
 #--loop on years
 for yr in range(yr_min,yr_max+1):
   #--add yr to dataframe
   df_airline[str(yr)+' all']=[0 for airline in airlines]
-  df_flightid[str(yr)+' all']=[0 for flightid in flightids]
+  df_aircraft[str(yr)+' all']=[0 for aircraft_id in aircraft_ids]
   df_airline[str(yr)+' screened']=[0 for airline in airlines]
-  df_flightid[str(yr)+' screened']=[0 for flightid in flightids]
+  df_aircraft[str(yr)+' screened']=[0 for aircraft_id in aircraft_ids]
   #
   #--select all IAGOS files
-  if path_iagos[0:4]=='/bdd':
-    files_iagos_all=sorted(glob.glob(path_iagos+str(yr)+'??/*.nc4'))   #--/bdd
-  else: 
-    files_iagos_all=sorted(glob.glob(path_iagos+'*.nc4'))               #--/projsu
+  #--files are located in directories YYYYMM
+  files_iagos_all=sorted(glob.glob(path_iagos+str(yr)+'??/*.nc4'))
   #
   #--clean datasets by removing duplicates with different versions
   files_iagos_seeds=sorted(list(set([file[0:lenstr] for file in files_iagos_all])))   #--/bdd/IAGOS/netcdf
@@ -195,23 +208,34 @@ for yr in range(yr_min,yr_max+1):
     #--airline
     airline=iagos.platform.split(',')[-1].strip(' ')
     print('airline is ',airline)
-    #--flightid
-    flightid=iagos.platform.split(',')[-2].strip(' ')
-    print('flightid is ',flightid)
+    #--aircraft_id
+    aircraft_id=iagos.platform.split(',')[-2].strip(' ')
+    print('aircraft_id is ',aircraft_id)
     #--increment counter
-    df_flightid[str(yr)+' all'][flightid] += 1
-    df_airline[str(yr)+' all'][airline]   += 1
+    df_aircraft.loc[aircraft_id,str(yr)+' all'] += 1
+    df_airline.loc[airline,str(yr)+' all']      += 1
     #--extract data
     lat_iagos=iagos['lat']
     lon_iagos=iagos['lon']
     time_iagos=iagos['UTC_time']
     pressure_iagos=iagos['air_press_AC']
-    #--define arrays of lon, lat, pressure, temp and rhi values
+    temperature_iagos=iagos['air_temp_AC']
+    airspeed_iagos=iagos['air_speed_AC']
+    windspeed_iagos=iagos['wind_speed_AC']
+    groundspeed_iagos=iagos['ground_speed_AC']
+    #--define arrays of lon, lat, pressure, and airspeed values
     lon_iagos_values=lon_iagos.values
     lat_iagos_values=lat_iagos.values
     pressure_iagos_values=pressure_iagos.values
+    temperature_iagos_values=temperature_iagos.values
+    airspeed_iagos_values=airspeed_iagos.values
+    windspeed_iagos_values=windspeed_iagos.values
+    groundspeed_iagos_values=groundspeed_iagos.values
     #--exclude unknown airports    
-    if lon_departure < -999. or lat_departure < -999. or lon_arrival < -999. or lat_arrival < -999.: continue
+    if lon_departure < -999. or lat_departure < -999. or lon_arrival < -999. or lat_arrival < -999.: 
+        print('Error: Issue with longitude or latitude of airport')
+        continue
+    #
     #--find regions
     found_two_regions=False
     for region1 in regions: 
@@ -224,7 +248,7 @@ for yr in range(yr_min,yr_max+1):
         break
     #
     if not found_two_regions: 
-        print('ATTENTION: one or both of the regions not found') 
+        print('Error: one or both of the regions not found') 
         continue
     #
     #--find lon, lat, alt of cruising similar to what FR24 database does
@@ -234,7 +258,7 @@ for yr in range(yr_min,yr_max+1):
     #
     #--eliminate low-level flights
     if len(ind) == 0:
-        print('This flight is too low to be optimized so we stop here')
+        print('Error: this flight is too low to be optimized so we stop here')
         continue
     #
     #--find longitude and latitude of beginning and end of cruising phase
@@ -249,7 +273,7 @@ for yr in range(yr_min,yr_max+1):
     #
     #--eliminate unknown points
     if np.isnan(lat_p1) or np.isnan(lon_p1) or np.isnan(lon_p1) or np.isnan(lon_p2): 
-        print('Some of the lat / lon are NaN. We stop here for this flight')
+        print('Eror: some of the lat / lon are NaN. We stop here for this flight')
         continue
     #
     #--compute great circle distance
@@ -259,12 +283,52 @@ for yr in range(yr_min,yr_max+1):
     #
     #--eliminate flights with too short cruising distance
     if dist <= distmin: 
-        print('This flight is too short to be optimized so we stop here')
+        print('Error: this flight is too short to be optimized so we stop here')
         continue
     #
+    #--compute groundspeed statistics
+    groundspeeds=groundspeed_iagos_values[ind]
+    groundspeeds=groundspeeds[groundspeeds>=0]
+    groundspeed_ave=np.average(groundspeeds)
+    groundspeed_std=np.std(groundspeeds)
+    print('Groundspeed = ',"{:6.1f}".format(groundspeed_ave),'+/-',"{:6.2f}".format(groundspeed_std))
+    groundspeed_ave_list.append(groundspeed_ave)
+    groundspeed_std_list.append(groundspeed_std)
+    #
+    #--compute airspeed statistics
+    airspeeds=airspeed_iagos_values[ind]
+    indices=airspeeds>=0
+    airspeeds=airspeeds[indices]
+    airspeed_ave=np.average(airspeeds)
+    airspeed_std=np.std(airspeeds)
+    print('Airspeed = ',"{:6.1f}".format(airspeed_ave),'+/-',"{:6.2f}".format(airspeed_std))
+    if not np.isnan(airspeed_ave):
+       airspeed_ave_list.append(airspeed_ave)
+       airspeed_std_list.append(airspeed_std)
+    #
+    #--compute windspeed statistics
+    windspeeds=windspeed_iagos_values[ind]
+    windspeeds=windspeeds[indices]
+    #
+    #--compute Mach number statistics
+    temperatures=temperature_iagos_values[ind]
+    temperatures=temperatures[indices]
+    #
+    #--sound of speed for ideal gas according to Wikipedia: sqrt(gamma*kB*T/m)
+    soundspeeds=np.sqrt(gamma*kb*temperatures/(air_density/avogadro))
+    machnumbers=airspeeds/soundspeeds
+    machnumber_ave=np.average(machnumbers)
+    machnumber_std=np.std(machnumbers)
+    print('Mach number = ',"{:5.4f}".format(machnumber_ave),'+/-',"{:5.4f}".format(machnumber_std))
+    if not np.isnan(machnumber_ave):
+       machnumber_ave_list.append(machnumber_ave)
+       machnumber_std_list.append(machnumber_std)
+    #print('Correlation coefficient airspeed - T=',np.corrcoef(airspeeds,temperatures)[0,1])
+    #print('Correlation coefficient airspeed - windspeed =',np.corrcoef(airspeeds,windspeeds)[0,1])
+    #
     #--increment counter
-    df_flightid[str(yr)+' screened'][flightid] += 1
-    df_airline[str(yr)+' screened'][airline]   += 1
+    df_aircraft.loc[aircraft_id,str(yr)+' screened'] += 1
+    df_airline.loc[airline,str(yr)+' screened']      += 1
     #
     #--list paper files
     if (region1, region2) not in files.keys():
@@ -274,10 +338,48 @@ for yr in range(yr_min,yr_max+1):
 #
 #--make sums by year
 df_airline.loc["Total"] = df_airline.sum()
-df_flightid.loc["Total"] = df_flightid.sum()
+df_aircraft.loc["Total"] = df_aircraft.sum()
+#
 #--df output
+print('\n')
 print('Sampled airlines=',df_airline)
-print('Sampled flight ids=',df_flightid)
+print('Sampled flight ids=',df_aircraft)
+#
 #--latex output
 print(df_airline.style.to_latex())
-print(df_flightid.style.to_latex())
+print(df_aircraft.style.to_latex())
+#
+#--Mean and st.dev. in speeds in relative terms
+print('Averaged ground speeds   =',np.average(groundspeed_ave_list),'+/-',np.std(groundspeed_ave_list))
+print('St. dev. of ground speeds=',np.average(groundspeed_std_list))
+print('St. dev. of ground speeds=',np.average(groundspeed_std_list)/np.average(groundspeed_ave_list)*100,'%')
+print('\n')
+print('Averaged air speeds      =',np.average(airspeed_ave_list),'+/-',np.std(airspeed_ave_list))
+print('St. dev. of air speeds   =',np.average(airspeed_std_list))
+print('St. dev. of air speeds   =',np.average(airspeed_std_list)/np.average(airspeed_ave_list)*100,'%')
+print('\n')
+print('Averaged Mach number     =',np.average(machnumber_ave_list),'+/-',np.std(machnumber_ave_list))
+print('St. dev. of Mach number  =',np.average(machnumber_std_list))
+print('St. dev. of Mach number  =',np.average(machnumber_std_list)/np.average(machnumber_ave_list)*100,'%')
+#
+#--make plots
+plt.hist(airspeed_ave_list)
+plt.title('Histogram of average cruising air speed (m/s)')
+plt.xlabel('Air speed (m/s)')
+plt.savefig(pathgraph+'histogram_airspeed_ave.png')
+plt.close()
+plt.hist(airspeed_std_list)
+plt.title('Histogram of standard deviation of cruising air speed (m/s)')
+plt.xlabel('St. Dev. of air speed (m/s)')
+plt.savefig(pathgraph+'histogram_airspeed_std.png')
+plt.close()
+plt.hist(groundspeed_std_list)
+plt.title('Histogram of standard deviation of cruising ground speed (m/s)')
+plt.xlabel('St. Dev. of ground speed (m/s)')
+plt.savefig(pathgraph+'histogram_groundspeed_std.png')
+plt.close()
+plt.hist(machnumber_ave_list)
+plt.title('Histogram of average cruising Mach number')
+plt.xlabel('Mach number')
+plt.savefig(pathgraph+'histogram_machnumber_ave.png')
+plt.close()

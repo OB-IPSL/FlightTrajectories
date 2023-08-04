@@ -24,7 +24,7 @@ maxiter=args.maxiter
 method=args.method
 flightid0=args.flightid
 
-#pathout='/data/oboucher/FR24/ROUTE/'+str(maxiter)+'/'+method+'/'
+#--pathout with output data
 pathout='/projsu/cmip-work/oboucher/FR24/ROUTE/'+str(maxiter)+'/'+method+'/'
 #
 #--stop warnings

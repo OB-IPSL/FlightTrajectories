@@ -38,6 +38,9 @@ print('level=',level)
 print('maxiter=',maxiter)
 print('method=',method,'\n')
 #
+#--path with graph outputs
+pathgraph='../GRAPHS/'
+
 #--define regions
 regions=['europe','southamerica','northamerica','centralamerica','asia','centralasia',\
          'southeastasia','australasia','middleeast','africa','pacific']
@@ -76,8 +79,7 @@ colors={'D-AIGT':'blue','D-AIKO':'blue','D-AIHE':'blue','Lufthansa':'blue',     
         'F-GLZU':'purple','F-GZCO':'purple','Air France':'purple',                       #--Air France
         'B-HLR':'orange','Cathay Pacific':'orange'}                                      #--Cathay Pacific
 #
-#--path
-#pathout='/data/oboucher/FR24/ROUTE/'+str(maxiter)+'/'+method+'/'
+#--path with output data
 pathout='/projsu/cmip-work/oboucher/FR24/ROUTE/'+str(maxiter)+'/'+method+'/'
 #
 #--stop warnings from division by zero
@@ -175,9 +177,9 @@ for i1,region1 in enumerate(regions):
       plt.legend(fontsize=24)
       plt.tight_layout()
       if route=='':
-        plt.savefig('GRAPHS/STATS_'+str(yr)+str(mth).zfill(2)+'.png')
+        plt.savefig(pathgraph+'STATS_'+str(yr)+str(mth).zfill(2)+'.png')
       else:
-        plt.savefig('GRAPHS/STATS_'+route+'_'+str(yr)+'.png')
+        plt.savefig(pathgraph+'STATS_'+route+'_'+str(yr)+'.png')
       if pltshow: plt.show()
       plt.close()
       #
@@ -196,9 +198,9 @@ for i1,region1 in enumerate(regions):
       plt.legend(fontsize=24)
       plt.tight_layout()
       if route=='':
-        plt.savefig('GRAPHS/COMP_TIME_'+str(yr)+str(mth).zfill(2)+'.png')
+        plt.savefig(pathgraph+'COMP_TIME_'+str(yr)+str(mth).zfill(2)+'.png')
       else:
-        plt.savefig('GRAPHS/COMP_TIME_'+route+'_'+str(yr)+'.png')
+        plt.savefig(pathgraph+'COMP_TIME_'+route+'_'+str(yr)+'.png')
       if pltshow: plt.show()
       plt.close()
 #
@@ -232,7 +234,7 @@ plt.plot([0.1,15],[0.1*1.02,15*1.02],color='black',linestyle='solid',linewidth=0
 plt.plot([0.1,15],[0.1*1.05,15*1.05],color='black',linestyle='solid',linewidth=0.5)
 plt.plot([0.1,15],[0.1*1.10,15*1.10],color='black',linestyle='solid',linewidth=0.5)
 plt.plot([0.1,15],[0.1*1.20,15*1.20],color='black',linestyle='solid',linewidth=0.5)
-plt.savefig('GRAPHS/SCATTER_PLOT_by_route_'+str(yr)+'.png')
+plt.savefig(pathgraph+'SCATTER_PLOT_by_route_'+str(yr)+'.png')
 if pltshow: plt.show()
 plt.close()
 #
@@ -277,7 +279,7 @@ plt.plot([0.1,15],[0.1*1.02,15*1.02],color='black',linestyle='solid',linewidth=0
 plt.plot([0.1,15],[0.1*1.05,15*1.05],color='black',linestyle='solid',linewidth=0.5)
 plt.plot([0.1,15],[0.1*1.10,15*1.10],color='black',linestyle='solid',linewidth=0.5)
 plt.plot([0.1,15],[0.1*1.20,15*1.20],color='black',linestyle='solid',linewidth=0.5)
-plt.savefig('GRAPHS/SCATTER_PLOT_by_aircraft_'+str(yr)+'.png')
+plt.savefig(pathgraph+'SCATTER_PLOT_by_aircraft_'+str(yr)+'.png')
 if pltshow: plt.show()
 plt.close()
 #
