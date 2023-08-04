@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>misc_time &mdash; FlightTrajectories 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            FlightTrajectories
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="misc_geo.html">misc_geo</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FlightTrajectories</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">misc_time</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/misc_time.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="misc-time">
+<span id="id1"></span><h1>misc_time<a class="headerlink" href="#misc-time" title="Permalink to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#module-FlightTrajectories.misc_time" id="id3">Misc Time</a></p></li>
+</ul>
+</nav>
+<section id="module-FlightTrajectories.misc_time">
+<span id="id2"></span><h2><a class="toc-backref" href="#id3" role="doc-backlink">Misc Time</a><a class="headerlink" href="#module-FlightTrajectories.misc_time" title="Permalink to this heading"></a></h2>
+<p>A library of functions for converting between different time
+specifications (UTC, TAI and LST)
+and different time formats (year, month, day and year, day of year - doy)</p>
+<p>Ed Gryspeerdt, Oxford, 2014</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.doy_to_date">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">doy_to_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#doy_to_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.doy_to_date" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a date from DOY representation to day.month.year
+returns tuple(year,month,day)</p>
+<p>Raises ValueError if the doy is not valid for that year</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.date_to_doy">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">date_to_doy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">month</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#date_to_doy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.date_to_doy" title="Permalink to this definition"></a></dt>
+<dd><p>Converts date format from y,m,d to a tuple (year,doy)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.lst_to_utc">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">lst_to_utc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#lst_to_utc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.lst_to_utc" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the UTC time given a decimal LST and longitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.utc_to_lst">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">utc_to_lst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#utc_to_lst"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.utc_to_lst" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the LST time given a decimal UTC and longitude</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.utc_to_sat_offset">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">utc_to_sat_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">utc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sattime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'5'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#utc_to_sat_offset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.utc_to_sat_offset" title="Permalink to this definition"></a></dt>
+<dd><p>Utc [0,24), lon [0,360)
+Returns hours to satellite track on day doy days ago</p>
+<p>Sattime (and utc) is a decimal hour - e.g. 13.5 for Aqua</p>
+<p>The satellite is assumed to have a time like MODIS L3 (C5)
+(e.g. DOY is defined as the UTC day)</p>
+<p>For collection 6, use flag ‘col=’6’’, see example below</p>
+<p>For example, using Aqua (sattime=13.5)</p>
+<dl class="simple">
+<dt>At longitude 0, utc 14, the offset is 0.5</dt><dd><p>(half and hour behind the satellite)</p>
+</dd>
+</dl>
+<p>At longitude -170, utc 1, the offset is 0.16 (approximately 10 min behind)</p>
+<p>At longitude -170, utc 23, the offset is 22.16 (22 hours behind)</p>
+<p>import matplotlib.pyplot as plt
+t,lon = np.meshgrid(np.arange(0, 24, 0.25), np.arange(0, 360, 1))
+offset = utc_to_sat_offset(t, lon, 13.5, col=’6’)
+plt.imshow(offset)
+plt.show()</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.tai_to_utc">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">tai_to_utc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_tai</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#tai_to_utc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.tai_to_utc" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the UTC given a decimal TAI time (seconds since Jan 1st 1993)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.utc_to_tai">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">utc_to_tai</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_utc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#utc_to_tai"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.utc_to_tai" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the TAI given the year, day of year and decimal utc time</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.doy_step">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">doy_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#doy_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.doy_step" title="Permalink to this definition"></a></dt>
+<dd><p>Adds “step” number of days to the date specified by {year,doy},
+taking into account lengths of yaers etc.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.ydh_to_datetime">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">ydh_to_datetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hour</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#ydh_to_datetime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.ydh_to_datetime" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.doy_exists">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">doy_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doy</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#doy_exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.doy_exists" title="Permalink to this definition"></a></dt>
+<dd><p>Returns Ture if the doy is a valid date, False otherwise</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.get_season">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">get_season</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">364</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#get_season"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.get_season" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the season for a given year and doy
+0 - DJF
+1 - MAM
+2 - JJA
+3 - SON</p>
+<p>Note, this assumes a 364 day year for simplicity. It should not
+matter for the majority of use cases, careful just incase.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="FlightTrajectories.misc_time.toLocalSolarTime">
+<span class="sig-prename descclassname"><span class="pre">FlightTrajectories.misc_time.</span></span><span class="sig-name descname"><span class="pre">toLocalSolarTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gmt_times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitudes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DEBUG</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FlightTrajectories/misc_time.html#toLocalSolarTime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#FlightTrajectories.misc_time.toLocalSolarTime" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a set of data at GMT times (gmt_times) and
+longitudes (longitudes) to local solar time (lst_time),</p>
+<p>7/2/2011 - Created - E Gryspeerdt, AOPP, University of Oxford.</p>
+<p>Input
+lst_time - number defining local solar time required</p>
+<blockquote>
+<div><p>(between 0 and 24, fractions for minutes)</p>
+</div></blockquote>
+<p>gmt_times[times] - array indicating the GMT times of the data slices
+longitudes[lons] - array containing the longitudes of the grid
+data[lats,lons,times] - containing the data to be retimed
+interpolation (linear or nearest) - specifies the method</p>
+<blockquote>
+<div><p>to use when retiming</p>
+</div></blockquote>
+<p>Output - array[lats,lons] of the data retimed to lst_time</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Olivier Boucher, Ed Gryspeerdt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

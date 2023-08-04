@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlightTrajectories.misc_time &mdash; FlightTrajectories 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            FlightTrajectories
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../misc_geo.html">misc_geo</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">FlightTrajectories</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">FlightTrajectories.misc_time</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for FlightTrajectories.misc_time</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39; A library of functions for converting between different time</span>
+<span class="sd">    specifications (UTC, TAI and LST)</span>
+<span class="sd">    and different time formats (year, month, day and year, day of year - doy)</span>
+
+<span class="sd">    Ed Gryspeerdt, Oxford, 2014&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+
+<div class="viewcode-block" id="doy_to_date"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.doy_to_date">[docs]</a><span class="k">def</span> <span class="nf">doy_to_date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;doy_to_date(year,doy)</span>
+<span class="sd">    Converts a date from DOY representation to day.month.year</span>
+<span class="sd">    returns tuple(year,month,day)</span>
+
+<span class="sd">    Raises ValueError if the doy is not valid for that year&#39;&#39;&#39;</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">dat</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">doy</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dat</span><span class="o">.</span><span class="n">year</span> <span class="o">!=</span> <span class="n">year</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Day not within year&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">day</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="date_to_doy"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.date_to_doy">[docs]</a><span class="k">def</span> <span class="nf">date_to_doy</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Converts date format from y,m,d to a tuple (year,doy)&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span><span class="o">.</span><span class="n">timetuple</span><span class="p">()</span><span class="o">.</span><span class="n">tm_yday</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="lst_to_utc"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.lst_to_utc">[docs]</a><span class="k">def</span> <span class="nf">lst_to_utc</span><span class="p">(</span><span class="n">time_lst</span><span class="p">,</span> <span class="n">longitude</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Returns the UTC time given a decimal LST and longitude&#39;&#39;&#39;</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">longitude</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">time_lst</span> <span class="o">-</span> <span class="n">longitude</span> <span class="o">*</span> <span class="mf">24.</span> <span class="o">/</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="utc_to_lst"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.utc_to_lst">[docs]</a><span class="k">def</span> <span class="nf">utc_to_lst</span><span class="p">(</span><span class="n">time_utc</span><span class="p">,</span> <span class="n">longitude</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Returns the LST time given a decimal UTC and longitude&#39;&#39;&#39;</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">longitude</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">time_utc</span> <span class="o">+</span> <span class="n">longitude</span> <span class="o">*</span> <span class="mf">24.</span> <span class="o">/</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="utc_to_sat_offset"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.utc_to_sat_offset">[docs]</a><span class="k">def</span> <span class="nf">utc_to_sat_offset</span><span class="p">(</span><span class="n">utc</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">sattime</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">&#39;5&#39;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Utc [0,24), lon [0,360)</span>
+<span class="sd">    Returns hours to satellite track on day doy days ago</span>
+
+<span class="sd">    Sattime (and utc) is a decimal hour - e.g. 13.5 for Aqua</span>
+
+<span class="sd">    The satellite is assumed to have a time like MODIS L3 (C5)</span>
+<span class="sd">    (e.g. DOY is defined as the UTC day)</span>
+
+<span class="sd">    For collection 6, use flag &#39;col=&#39;6&#39;&#39;, see example below</span>
+
+
+<span class="sd">    For example, using Aqua (sattime=13.5)</span>
+
+<span class="sd">    At longitude 0, utc 14, the offset is 0.5</span>
+<span class="sd">               (half and hour behind the satellite)</span>
+
+<span class="sd">    At longitude -170, utc 1, the offset is 0.16 (approximately 10 min behind)</span>
+
+<span class="sd">    At longitude -170, utc 23, the offset is 22.16 (22 hours behind)</span>
+
+<span class="sd">    import matplotlib.pyplot as plt</span>
+<span class="sd">    t,lon = np.meshgrid(np.arange(0, 24, 0.25), np.arange(0, 360, 1))</span>
+<span class="sd">    offset = utc_to_sat_offset(t, lon, 13.5, col=&#39;6&#39;)</span>
+<span class="sd">    plt.imshow(offset)</span>
+<span class="sd">    plt.show()</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+    <span class="n">lon</span><span class="p">[</span><span class="n">lon</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">360</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="n">utc</span> <span class="o">+</span> <span class="n">lon</span> <span class="o">/</span> <span class="mf">15.</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="n">lst</span> <span class="o">-</span> <span class="n">sattime</span>
+    <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span><span class="p">:</span>
+        <span class="n">lst</span><span class="p">[(</span><span class="n">lon</span> <span class="o">/</span> <span class="mf">15.</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">sattime</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">24</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Collection 6 modifies the dateline so that the effective</span>
+        <span class="c1"># switch time is 12, even though the satellties are earlier and later</span>
+        <span class="c1"># This is to avoid data gaps close to the dateline</span>
+        <span class="n">lst</span><span class="p">[(</span><span class="n">lon</span> <span class="o">/</span> <span class="mf">15.</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">12</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">24</span>
+    <span class="k">return</span> <span class="n">lst</span></div>
+
+
+<div class="viewcode-block" id="tai_to_utc"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.tai_to_utc">[docs]</a><span class="k">def</span> <span class="nf">tai_to_utc</span><span class="p">(</span><span class="n">time_tai</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Returns the UTC given a decimal TAI time (seconds since Jan 1st 1993)&#39;&#39;&#39;</span>
+    <span class="n">time_utc</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1993</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">time_tai</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">time_utc</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+            <span class="n">time_utc</span><span class="o">.</span><span class="n">timetuple</span><span class="p">()</span><span class="o">.</span><span class="n">tm_yday</span><span class="p">,</span>
+            <span class="n">time_utc</span><span class="o">.</span><span class="n">hour</span> <span class="o">+</span> <span class="n">time_utc</span><span class="o">.</span><span class="n">minute</span> <span class="o">/</span> <span class="mf">60.</span> <span class="o">+</span> <span class="n">time_utc</span><span class="o">.</span><span class="n">second</span> <span class="o">/</span> <span class="mf">3600.</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="utc_to_tai"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.utc_to_tai">[docs]</a><span class="k">def</span> <span class="nf">utc_to_tai</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">,</span> <span class="n">time_utc</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Returns the TAI given the year, day of year and decimal utc time&#39;&#39;&#39;</span>
+    <span class="n">td</span> <span class="o">=</span> <span class="p">((</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">doy</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span>
+           <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">time_utc</span><span class="p">))</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1993</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">td</span><span class="o">.</span><span class="n">seconds</span> <span class="o">+</span> <span class="n">td</span><span class="o">.</span><span class="n">days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="doy_step"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.doy_step">[docs]</a><span class="k">def</span> <span class="nf">doy_step</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Adds &quot;step&quot; number of days to the date specified by {year,doy},</span>
+<span class="sd">    taking into account lengths of yaers etc.&#39;&#39;&#39;</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">dat</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">doy</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">step</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">date_to_doy</span><span class="p">(</span><span class="n">dat</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">dat</span><span class="o">.</span><span class="n">day</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ydh_to_datetime"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.ydh_to_datetime">[docs]</a><span class="k">def</span> <span class="nf">ydh_to_datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">,</span> <span class="n">hour</span><span class="p">):</span>
+    <span class="n">dat</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="o">*</span><span class="n">doy_to_date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">))</span><span class="o">+</span><span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">hour</span><span class="o">//</span><span class="mi">1</span><span class="p">),</span> <span class="n">minutes</span><span class="o">=</span><span class="nb">int</span><span class="p">((</span><span class="n">hour</span><span class="o">%</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">60</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">dat</span></div>
+
+
+<div class="viewcode-block" id="doy_exists"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.doy_exists">[docs]</a><span class="k">def</span> <span class="nf">doy_exists</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">):</span>
+    <span class="s2">&quot;Returns Ture if the doy is a valid date, False otherwise&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">doy_to_date</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">doy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="c1"># doy_to_date raises ValueError for an invalid doy</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="get_season"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.get_season">[docs]</a><span class="k">def</span> <span class="nf">get_season</span><span class="p">(</span><span class="n">doy</span><span class="p">,</span> <span class="n">year_length</span><span class="o">=</span><span class="mi">364</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Returns the season for a given year and doy</span>
+<span class="sd">    0 - DJF</span>
+<span class="sd">    1 - MAM</span>
+<span class="sd">    2 - JJA</span>
+<span class="sd">    3 - SON</span>
+
+<span class="sd">    Note, this assumes a 364 day year for simplicity. It should not </span>
+<span class="sd">    matter for the majority of use cases, careful just incase.&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">doy</span><span class="o">+</span><span class="mi">30</span><span class="p">)</span> <span class="o">%</span> <span class="mi">364</span><span class="p">)</span><span class="o">//</span><span class="mi">91</span></div>
+    
+
+<div class="viewcode-block" id="toLocalSolarTime"><a class="viewcode-back" href="../../misc_time.html#FlightTrajectories.misc_time.toLocalSolarTime">[docs]</a><span class="k">def</span> <span class="nf">toLocalSolarTime</span><span class="p">(</span><span class="n">lst_time</span><span class="p">,</span> <span class="n">gmt_times</span><span class="p">,</span> <span class="n">longitudes</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+                     <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">DEBUG</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Converts a set of data at GMT times (gmt_times) and </span>
+<span class="sd">    longitudes (longitudes) to local solar time (lst_time),</span>
+<span class="sd">    </span>
+<span class="sd">    7/2/2011 - Created - E Gryspeerdt, AOPP, University of Oxford.</span>
+
+<span class="sd">    Input</span>
+<span class="sd">    lst_time - number defining local solar time required</span>
+<span class="sd">                 (between 0 and 24, fractions for minutes)</span>
+<span class="sd">    gmt_times[times] - array indicating the GMT times of the data slices</span>
+<span class="sd">    longitudes[lons] - array containing the longitudes of the grid</span>
+<span class="sd">    data[lats,lons,times] - containing the data to be retimed</span>
+<span class="sd">    interpolation (linear or nearest) - specifies the method</span>
+<span class="sd">                 to use when retiming</span>
+
+<span class="sd">    Output - array[lats,lons] of the data retimed to lst_time</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">gmt_times</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gmt_times</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;Data should not contain duplicate times&#39;</span> <span class="o">+</span>
+            <span class="s1">&#39;(gmt_times,toLocalSolarTime))&#39;</span><span class="p">)</span>
+    <span class="n">outdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># Deal with non-sorted gmt_times</span>
+    <span class="n">times_sort</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">gmt_times</span><span class="p">)</span>
+    <span class="n">times_sort</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">times_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gmt_times</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times_index</span><span class="p">)):</span>
+        <span class="n">times_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">gmt_times</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">times_sort</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="c1"># Do the re-timing</span>
+    <span class="k">for</span> <span class="n">lon_ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">longitudes</span><span class="p">)):</span>
+        <span class="n">local_gmt</span> <span class="o">=</span> <span class="n">lst_to_utc</span><span class="p">(</span><span class="n">lst_time</span><span class="p">,</span> <span class="n">longitudes</span><span class="p">[</span><span class="n">lon_ind</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">local_gmt</span> <span class="o">&gt;</span> <span class="n">times_sort</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Cannot calculate LST, require extra data timeslice&#39;</span><span class="p">)</span>
+        <span class="c1"># Calculate the weights for each timeslice</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gmt_times</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times_sort</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">times_sort</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">local_gmt</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">high_ind</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">high_ind</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">times_sort</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">local_gmt</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">low_ind</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="k">if</span> <span class="n">high_ind</span> <span class="o">==</span> <span class="n">low_ind</span><span class="p">:</span>
+            <span class="n">weights</span><span class="p">[</span><span class="n">low_ind</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">interpolation</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+                <span class="n">fract</span> <span class="o">=</span> <span class="p">((</span><span class="n">local_gmt</span> <span class="o">-</span> <span class="n">times_sort</span><span class="p">[</span><span class="n">high_ind</span><span class="p">])</span> <span class="o">/</span>
+                         <span class="p">(</span><span class="n">times_sort</span><span class="p">[</span><span class="n">low_ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">times_sort</span><span class="p">[</span><span class="n">high_ind</span><span class="p">]))</span>
+                <span class="n">weights</span><span class="p">[</span><span class="n">low_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">fract</span>
+                <span class="n">weights</span><span class="p">[</span><span class="n">high_ind</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">fract</span>
+            <span class="k">elif</span> <span class="n">interpolation</span> <span class="o">==</span> <span class="s1">&#39;nearest&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="n">longitudes</span><span class="p">[</span><span class="n">lon_ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">longitudes</span><span class="p">[</span><span class="n">low_ind</span><span class="p">])</span> <span class="o">&lt;</span>
+                     <span class="nb">abs</span><span class="p">(</span><span class="n">longitudes</span><span class="p">[</span><span class="n">lon_ind</span><span class="p">]</span> <span class="o">-</span> <span class="n">longitudes</span><span class="p">[</span><span class="n">low_ind</span><span class="p">]))):</span>
+                    <span class="n">weights</span><span class="p">[</span><span class="n">low_ind</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">weights</span><span class="p">[</span><span class="n">high_ind</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">outdata</span><span class="p">[:,</span> <span class="n">lon_ind</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="n">lon_ind</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span>
+                               <span class="n">weights</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">interpolation</span> <span class="o">==</span> <span class="s1">&#39;nearest&#39;</span><span class="p">:</span>
+            <span class="n">outdata</span><span class="p">[:,</span> <span class="n">lon_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="n">lon_ind</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outdata</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Olivier Boucher, Ed Gryspeerdt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
