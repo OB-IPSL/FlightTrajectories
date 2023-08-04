@@ -28,9 +28,9 @@ import pickle
 from scipy.ndimage import gaussian_filter1d
 
 
-from misc_geo import haversine, bearing, nearest, closest_argmin, sph2car, car2sph, G, el_foeew, ei_foeew
-from optimalrouting import ZermeloLonLat
-from minimization import *
+from FlightTrajectories.misc_geo import haversine, bearing, nearest, closest_argmin, sph2car, car2sph, G, el_foeew, ei_foeew
+from FlightTrajectories.optimalrouting import ZermeloLonLat
+from FlightTrajectories.minimization import *
 
 
 def process_grid(xr_u200, xr_v200, nbts, 
