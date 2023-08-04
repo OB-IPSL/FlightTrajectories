@@ -10,7 +10,8 @@ import great_circle_calculator.great_circle_calculator as gcc
 from FlightTrajectories.misc_geo import haversine
 
 #--path IAGOS files
-path_iagos='/bdd/IAGOS/'
+path_iagos='/bdd/IAGOS/netcdf/'
+lenstr=62
 #
 #--path out
 pathout='FLIGHTS/'
@@ -23,9 +24,7 @@ flightids=['D-AIGT','D-AIKO','D-AIHE','N384HA','B-18316','B-18317','B-18806','F-
 #
 #--year min and max
 yr_min=2018
-yr_max=2021
-#yr_min=2018
-#yr_max=2018
+yr_max=2022
 #
 #--minimum distance in m to be considered for a meaningful IAGOS flight to optimise (4000 km)
 #distmin = 4000000.
@@ -151,15 +150,20 @@ for yr in range(yr_min,yr_max+1):
   df_flightid[str(yr)+' all']=[0 for flightid in flightids]
   df_airline[str(yr)+' screened']=[0 for airline in airlines]
   df_flightid[str(yr)+' screened']=[0 for flightid in flightids]
+  #
   #--select all IAGOS files
-  files_iagos_all=sorted(glob.glob(path_iagos+str(yr)+'??/*.nc4'))
+  if path_iagos[0:4]=='/bdd':
+    files_iagos_all=sorted(glob.glob(path_iagos+str(yr)+'??/*.nc4'))   #--/bdd
+  else: 
+    files_iagos_all=sorted(glob.glob(path_iagos+'*.nc4'))               #--/projsu
+  #
   #--clean datasets by removing duplicates with different versions
-  files_iagos_seeds=sorted(list(set([file[0:55] for file in files_iagos_all])))
+  files_iagos_seeds=sorted(list(set([file[0:lenstr] for file in files_iagos_all])))   #--/bdd/IAGOS/netcdf
   #--create new list
   files_iagos=[]
   for seed in files_iagos_seeds:
       #--we only keep the latest version of each file if duplicates
-      file_iagos=[file for file in files_iagos_all if file[0:55]==seed][-1]
+      file_iagos=[file for file in files_iagos_all if file[0:lenstr]==seed][-1]  #--/bdd/IAGOS/netcdf
       #--append to list
       files_iagos.append(file_iagos)
   print('We found ',len(files_iagos),' independent files for ',yr)
