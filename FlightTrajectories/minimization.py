@@ -104,7 +104,7 @@ def wind(lons,lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced):
    #--we extract wind on lat using the xarray sel method
    lons_indices=closest_argmin(lons,lons_wind)  #--we need the indices because lon,time are lumped
    lats_indices=closest_argmin(lats,lats_wind)
-   lats_closest=lats_wind[lats_indices]         #--we need the closest values
+   #lats_closest=lats_wind[lats_indices]         #--we need the closest values #TODO remove - xr_u200_reduced already contains lats_wind
    #--create new zz axis
    lons_z  = xr.DataArray(lons_indices, dims="zz")
    #lats_z  = xr.DataArray(lats_closest, dims="zz")
