@@ -116,7 +116,6 @@ def process_grid(xr_u200, xr_v200, nbts,
 #-----------------------------------------------------------------------------------------
 # MAIN CODE 
 #-----------------------------------------------------------------------------------------
-#
 
 def read_data(iagos_file, Dt_ERA):
     """Read list of IAGOS files
@@ -365,19 +364,17 @@ def ED_quickest_route(p1, p2, airspeed, lon_p1, lon_p2, lat_p1, lat_p2,
     
     #--computing indices of quality of fit
     rmse_shortest=mean_squared_error(lat_shortest,lat_iagos_cruising)**0.5
-    #rmse_quickest=mean_squared_error(lat_quickest,lat_iagos_cruising)**0.5 #TODO
+    rmse_quickest=mean_squared_error(lat_quickest,lat_iagos_cruising)**0.5
     lat_max_shortest=np.max(np.abs(lat_shortest-lat_iagos_cruising))
-    #lat_max_quickest=np.max(np.abs(lat_quickest-lat_iagos_cruising))
-    rmse_quickest = 0
-    lat_max_quickest = 0
+    lat_max_quickest=np.max(np.abs(lat_quickest-lat_iagos_cruising))
     print('rmse and lat max=',rmse_shortest,rmse_quickest,lat_max_shortest,lat_max_quickest)
     
     return rmse_shortest, rmse_quickest, lat_max_shortest, lat_max_quickest, lon_ed_LD, lat_ed_LD, dt_ed_LD, time_elapsed_EG, lon_ed, lat_ed, dt_ed_HD, solution
 
-
+#--main routine
 def opti(mth, inputfile, route, level,  maxiter,
-         method, path_iagos, pathERA5, pathout,
-         nbmeters, airspeed, R_earth, disp, pltshow, Dt_ERA):
+         method, precision, path_iagos, pathERA5, pathout,
+         nbmeters, nbest, airspeed, R_earth, disp, pltshow, Dt_ERA):
 
     if inputfile != '': 
         #--single file
@@ -387,7 +384,7 @@ def opti(mth, inputfile, route, level,  maxiter,
     elif route != '': 
         #--Otherwise use the selected route
         #--read route flights 
-        csvfile = 'FLIGHTS/'+route+'_'+str(yr)+'.csv'
+        csvfile = '../FLIGHTS/'+route+'_'+str(yr)+'.csv'
         #--open file
         print('csvfile=',csvfile)
         iagos_files = pd.read_csv(csvfile,header=None,names=['file'])
@@ -396,7 +393,6 @@ def opti(mth, inputfile, route, level,  maxiter,
         #--Otherwise use year+month
         #--all IAGOS files from selected year and month
         iagos_files=sorted(glob.glob(path_iagos+str(yr)+str(mth).zfill(2)+'/*.nc4'))
-
 
     print('We have found '+str(len(iagos_files))+' IAGOS files.')
  
@@ -411,18 +407,18 @@ def opti(mth, inputfile, route, level,  maxiter,
     stryr=str(yr)
     file_u=pathERA5+'u.'+stryr+'.GLOBAL.nc'
     file_v=pathERA5+'v.'+stryr+'.GLOBAL.nc'
-    file_t=pathERA5+'ta.'+stryr+'.GLOBAL.nc'
-    file_r=pathERA5+'r.'+stryr+'.GLOBAL.nc'
+    #file_t=pathERA5+'ta.'+stryr+'.GLOBAL.nc'
+    #file_r=pathERA5+'r.'+stryr+'.GLOBAL.nc'
 
     print(file_u)
     print(file_v)
-    print(file_t)
-    print(file_r)
+    #print(file_t)
+    #print(file_r)
 
     xr_u=xr.open_dataset(file_u)  
     xr_v=xr.open_dataset(file_v)  
-    xr_t=xr.open_dataset(file_t)  
-    xr_r=xr.open_dataset(file_r)  
+    #xr_t=xr.open_dataset(file_t)  
+    #xr_r=xr.open_dataset(file_r)  
 
     #--Extract coordinates
     levels_wind=list(xr_u['level'].values)
@@ -446,19 +442,20 @@ def opti(mth, inputfile, route, level,  maxiter,
         dist_gcc = gcc.distance_between_points((lon_p1,lat_p1),(lon_p2,lat_p2),unit='meters')
         print('Distance between airports (haversine & gcc) = ',"{:6.3f}".format(dist/1000.),"{:6.3f}".format(dist_gcc/1000.),'km')
         
-        # --compute number of legs
+        #--compute number of legs
         npoints = int(dist // nbmeters)
         
         #--select IAGOS datapoints as close as possible to FR24 datapoints
         idx1 = ((lon_iagos.values-lon_p1)**2.0+(lat_iagos.values-lat_p1)**2.0).argmin()
         idx2 = ((lon_iagos.values-lon_p2)**2.0+(lat_iagos.values-lat_p2)**2.0).argmin()
-        print(f'idxs {idx1} {idx2}') 
+
         #--compute actual IAGOS time flight during cruising (in hours)
         dt_iagos_1=float(time_iagos.values[idx2]-time_iagos.values[idx1])/3600./1.e9 #--convert nanoseconds => hr
         
         #--compute average IAGOS pressure (in hPa)
         ave_pressure_iagos=np.average(pressure_iagos[idx1:idx2])/100.
         print('Pressure levels in ERA5 file=',levels_wind)
+
         #--find closest pressure level in ERA5 data
         pressure_iagos_closest,pressure_ind_closest=nearest(levels_wind,ave_pressure_iagos)
         print('Average pressure=',"{:5.2f}".format(ave_pressure_iagos),'hPa closest to',pressure_iagos_closest,'hPa')
@@ -478,10 +475,6 @@ def opti(mth, inputfile, route, level,  maxiter,
         #--times to extract (3-hourly) from start to end of flight
         times_to_extract=[datetime(yr_iagos,mth_iagos,day_iagos,hr_iagos_closest,0)+timedelta(hours=i*Dt_ERA) for i in range(nbts)]
         
-        #--find closest time and corresponding index to flight average time
-        ave_time_iagos_closest,ave_time_ind_closest=nearest(times_to_extract,ave_time_iagos)
-        print('Flight average time closest to ERA=',ave_time_iagos_closest)
-        
         #--preload the data for a range of nbts times
         xr_u200=xr_u.sel(level=optim_level,time=times_to_extract).load()
         xr_v200=xr_v.sel(level=optim_level,time=times_to_extract).load()
@@ -491,12 +484,14 @@ def opti(mth, inputfile, route, level,  maxiter,
         xr_v200_values=xr_v200['v'].values
         
         #--prepare plate grid
-        plate, xyz, lon_pole_t, lat_pole_t, lon_p1, lat_p1, lon_p2, lat_p2, xx, yy, lon_iagos_values, lat_iagos_values, rotated, lon_key_values, lat_key_values, lon_pole, lat_pole = process_grid(xr_u200, xr_v200, nbts, 
-             lon_p1, lat_p1, lon_p2, lat_p2, lons_wind, lats_wind, 
+        plate, xyz, lon_pole_t, lat_pole_t, lon_p1, lat_p1, lon_p2, lat_p2, xx, yy,                             \
+             lon_iagos_values, lat_iagos_values, rotated, lon_key_values, lat_key_values, lon_pole, lat_pole =  \
+             process_grid(xr_u200, xr_v200, nbts, lon_p1, lat_p1, lon_p2, lat_p2, lons_wind, lats_wind,         \
              lon_iagos.values, lat_iagos.values, lon_key_values, lat_key_values)
 
         lon_iagos.values = lon_iagos_values
         lat_iagos.values = lat_iagos_values
+
         #--substitute data back in their original xarray objects
         xr_u200['u'].values=xr_u200_values
         xr_v200['v'].values=xr_v200_values
@@ -506,22 +501,11 @@ def opti(mth, inputfile, route, level,  maxiter,
         
         #--compute times_era assuming uniform sampling of longitudes
         times_wind=[]
-        #for lon in list(lons_wind):
-        #  if lon<lon_p1:
-        #    time_to_append=datetime(yr_iagos,mth_iagos,day_iagos,hr_iagos_closest,0)
-        #  elif lon<lon_p2:
-        #    time_to_append,time_ind_closest=nearest(times_to_extract,dep_time_iagos+timedelta(hours=dtime_per_degree*(lon-lon_p1)))
-        #  else:
-        #    time_to_append,time_ind_closest=nearest(times_to_extract,arr_time_iagos+timedelta(minutes=30))
-        #  #--append list of position times
-        #  times_wind.append(time_to_append)
-        #--convert times_wind to np array
-        #--define new joint lon-time axis
+
         _idx_p1 = bisect.bisect_right(lons_wind, lon_p1)
         _idx_p2 = bisect.bisect_right(lons_wind, lon_p2)
 
         lons_z = xr.DataArray(lons_wind[_idx_p1:_idx_p2], dims="z")
-        #lons_z = xr.DataArray(lons_wind, dims="z")
 
         for lon in list(lons_wind[_idx_p1:_idx_p2]):
           time_to_append,time_ind_closest=nearest(times_to_extract,dep_time_iagos+timedelta(hours=dtime_per_degree*(lon-lon_p1)))
@@ -536,7 +520,6 @@ def opti(mth, inputfile, route, level,  maxiter,
         xr_v200_reduced=xr_v200.sel(longitude=lons_z,time=times_z,latitude=lats_wind).load()
         #xr_u200_reduced.chunk(chunks={"z":"auto"})
         #xr_v200_reduced.chunk(chunks={"z":"auto"})
-        #lats_wind = lats_wind[_idx_latm49:_idx_lat49]
         
         end_time = time.time()
         time_elapsed_ERA=end_time-start_time
@@ -545,12 +528,6 @@ def opti(mth, inputfile, route, level,  maxiter,
         #--define p1 and p2 as tuples
         p1 = (lon_p1, lat_p1)
         p2 = (lon_p2, lat_p2)
-        
-        #--test longitude range
-        #if not (lons_wind[0] <= lon_p1 and lon_p1 <= lons_wind[-1] and lons_wind[0] <= lon_p2 and lon_p2 <= lons_wind[-1]):
-        #    print('lons_wind range is ',lons_wind[0],lons_wind[-1])
-        #    print('There is a problem with the longitude range')
-        #    sys.exit()
         
         #--flatten arrays and create coordinate vector
         xx_yy=np.array([[ixx,iyy] for ixx,iyy in zip(xx.flatten(),yy.flatten())])
@@ -574,9 +551,8 @@ def opti(mth, inputfile, route, level,  maxiter,
         #--compute IAGOS route
         #---------------------
         iagos_route = compute_IAGOS_route(lon_shortest, lon_iagos.values, lat_iagos.values, 
-                                                                        pressure_iagos.values, lon_p1, lon_p2,
-                                                                        lat_p1, lat_p2, idx1, idx2, xr_u200_reduced, xr_v200_reduced, airspeed,
-                                                                        lons_wind, lats_wind)
+                                          pressure_iagos.values, lon_p1, lon_p2, lat_p1, lat_p2, idx1, idx2, 
+                                          xr_u200_reduced, xr_v200_reduced, airspeed, lons_wind, lats_wind)
         if iagos_route is None:
             continue
         else:
@@ -588,8 +564,14 @@ def opti(mth, inputfile, route, level,  maxiter,
         #--compute OB quickest route
         #---------------------------
         start_time = time.time()
-        lon_quickest, lat_quickest = quickest_route(p1, p2, npoints, lat_iagos_cruising, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter )
-        dt_quickest=cost_time(lon_quickest, lat_quickest, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
+        if precision=='low':
+            #--fast, less accurate version
+           lon_quickest, lat_quickest, dt_quickest = quickest_route_fast(p1, p2, npoints, nbest, lat_iagos_cruising, lons_wind, lats_wind, 
+                                                                         xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter )
+        elif precision=='high':
+           #--full version
+           lon_quickest, lat_quickest, dt_quickest = quickest_route(p1, p2, npoints, lat_iagos_cruising, lons_wind, lats_wind, 
+                                                                    xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter )
         end_time = time.time()
         time_elapsed_OB=end_time-start_time
         print('Time elapsed for gradient descent method =',"{:3.1f}".format(time_elapsed_OB),'s')
@@ -598,13 +580,15 @@ def opti(mth, inputfile, route, level,  maxiter,
         #---------------------------
         #--compute ED quickest route
         #---------------------------
-        rmse_shortest, rmse_quickest, lat_max_shortest, lat_max_quickest, lon_ed_LD, lat_ed_LD, dt_ed_LD, time_elapsed_EG, lon_ed, lat_ed, dt_ed_HD, solution = ED_quickest_route(p1, p2, airspeed, lon_p1, lon_p2, lat_p1, lat_p2, 
+        rmse_shortest, rmse_quickest, lat_max_shortest, lat_max_quickest, lon_ed_LD, lat_ed_LD, dt_ed_LD,                   \
+                      time_elapsed_EG, lon_ed, lat_ed, dt_ed_HD, solution =                                                 \
+                      ED_quickest_route(p1, p2, airspeed, lon_p1, lon_p2, lat_p1, lat_p2,                                   \
                       lat_shortest, lat_quickest, lat_iagos_cruising, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, npoints)
                 
         #--fill DataFrame - not very efficient but ok as dataframe is short
-        final_df.loc[len(final_df)]=[iagos_file,iagos_id,flightid_iagos,optim_level,yr,dep_airport_iagos,arr_airport_iagos,\
+        final_df.loc[len(final_df)]=[iagos_file,iagos_id,flightid_iagos,optim_level,yr,dep_airport_iagos,arr_airport_iagos,      \
                                      dep_time_iagos,arr_time_iagos,time_iagos.values[idx1],time_iagos.values[idx2],lon_p1,lat_p1,\
-                                     lon_p2,lat_p2,dt_shortest,dt_quickest,dt_ed_LD,dt_iagos_2,rmse_shortest,rmse_quickest,\
+                                     lon_p2,lat_p2,dt_shortest,dt_quickest,dt_ed_LD,dt_iagos_2,rmse_shortest,rmse_quickest,      \
                                      time_elapsed_OB,time_elapsed_EG,airspeed,dist_gcc]
         
         #--save quickest route for Ed in a Dataframe
@@ -645,11 +629,6 @@ def opti(mth, inputfile, route, level,  maxiter,
         else:
           final_df.to_csv(pathout+str(yr)+str(mth).zfill(2)+'_lev'+str(level)+'.csv')
     
-    #--final stats and plots
-    print('\n')
-    print('rmse lat shortest '+str(yr)+'=',final_df['rmse lat shortest'].mean())
-    print('rmse lat quickest '+str(yr)+'=',final_df['rmse lat quickest'].mean())
-
 def main():
     #  NOTE 
     #  OB: gradient descent
@@ -667,25 +646,19 @@ def main():
             epilog="""example on how to call the python script:\n"""
                 """python optim_iagos_only.py --yr=2019 --level=200\n"""
                 """level=-1 => the script uses the pressure level that is closest to the average IAGOS flight pressure \n"""
-                """one can prescribe inputfile, otherwise route, otherwise mth."""
+                """one can prescribe inputfile, otherwise route, otherwise mth.""")
 
-            )
-    parser.add_argument('--yr', type=int, choices=[2018,2019,2020,2021,2022], default=2018, help='year')
+    parser.add_argument('--yr', type=int, choices=[2018,2019,2020,2021,2022], default=2019, help='year')
     parser.add_argument('--mth', type=int, choices=[-1,1,2,3,4,5,6,7,8,9,10,11,12], default=1, help='month')
     parser.add_argument('--inputfile', type=str, default='../data/IAGOS_timeseries_2019010510370802_L2_3.1.0.nc4', help='input file')
     parser.add_argument('--route', type=str, default='', help='route')
     parser.add_argument('--level', type=int, choices=[-1,150,175,200,225,250], default=-1, help='level (hPa)')
     parser.add_argument('--maxiter', type=int, default=100, help='max number of iterations')
     parser.add_argument('--method', type=str, default='SLSQP', choices=['SLSQP','BFGS','L-BFGS-B'], help='minimization method')
-    parser.add_argument('--iagos', type=str, default='/bdd/IAGOS', help='path to the IAGOS files')
+    parser.add_argument('--precision', type=str, default='high', choices=['low','high'], help='precision of gradient descent method')
+    parser.add_argument('--iagos', type=str, default='/bdd/IAGOS/netcdf/', help='path to the IAGOS files')
     parser.add_argument('--era5', type=str, default='/projsu/cmip-work/oboucher/ERA5/', help='path to the ERA5 files')
-    parser.add_argument('--output', type=str, default='./output', help='path to the output folder')
-
-
-    #--time sampling of ERA5 data
-    Dt_ERA=1 #--hourly
-    #--path to store output plots
-    #pathout='/projsu/cmip-work/oboucher/FR24/ROUTE/'+str(maxiter)+'/'+method+'/'
+    parser.add_argument('--output', type=str, default='/projsu/cmip-work/oboucher/FR24/ROUTE/', help='path to the output folder')
 
     #--get arguments from command line
     args = parser.parse_args()
@@ -698,13 +671,11 @@ def main():
     level=args.level
     maxiter=args.maxiter
     method=args.method
+    precision=args.precision
     path_iagos=args.iagos
     path_ERA5=args.era5
-    if args.output.endswith('/'):
-        output = args.output[:-1]
-    else:
-        output = args.output
-    pathout=os.path.join(output+str(maxiter),method)
+    output=args.output
+    pathout=os.path.join(output+str(maxiter),method)+'/'
   
     #--print input parameters to output
     print('yr=',yr)
@@ -714,6 +685,8 @@ def main():
     print('level=',level)
     print('maxiter=',maxiter)
     print('method=',method)
+    print('precision=',precision)
+    print('pathout=',pathout)
     
     #--stop unwanted warnings from xarray
     warnings.filterwarnings("ignore")
@@ -721,33 +694,30 @@ def main():
     #--a little more verbose
     print('We are dealing with IAGOS flights for year '+str(yr))
     if level == -1:
-      print('Variable level in optimisation')
+       print('Variable level in optimisation')
     else:
-      print('Fixed level in optimisation='+str(level)+' hPa')
-    
+       print('Fixed level in optimisation='+str(level)+' hPa')
     
     if not os.path.exists(pathout): os.makedirs(pathout)
-    # --number of m for one leg
+
+    #--some more important parameters
+    #--time sampling of ERA5 data in hours (1 = hourly data)
+    Dt_ERA=1
+    #--number of m for one leg when discretizing the trajectory
     nbmeters = 50000.
+    #--number of best first guess to be used in low precision option
+    nbest = 12
     #--typical aircraft airspeed in m/s 
-    airspeed = 241.
-    # --Earth's radius in m (same value as in misc_geo)
+    airspeed = 240.
+    #--Earth's radius in m (same value as in misc_geo)
     R_earth = 6372800.
     #--print out details of the minimization
     disp=False
-    #--show plots
-    #pltshow=False
-    pltshow=True
-    #--save plots
-    #pltsave=True
+    #--show plots while running
+    pltshow=False
+    #pltshow=True
     #
-    #--Definition of the cost function for the flight time under wind conditions
-    #--y is an array of latitude (does not include departure and arrival points) that is being optimized
-    #--x0 is a set of fixed longitude
-    #--return flight duration (in hours) accounting for winds
-    opti(mth, inputfile, route, level, maxiter, method,
-        path_iagos, path_ERA5, pathout, nbmeters, airspeed,
-        R_earth, disp, pltshow, Dt_ERA)
+    opti(mth, inputfile, route, level, maxiter, method, precision, path_iagos, path_ERA5, pathout, nbmeters, nbest, airspeed, R_earth, disp, pltshow, Dt_ERA)
 
 if __name__ == "__main__":
     main()

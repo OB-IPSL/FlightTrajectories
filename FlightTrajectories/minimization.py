@@ -96,6 +96,7 @@ def cost_squared(y, x0, lon1, lat1, lon2, lat2,lons_wind, lats_wind, xr_u200_red
    lons = np.array([lon1] + list(x0) + [lon2])
    #--lats vector including dep and arr
    lats = np.array([lat1] + list(y)  + [lat2])
+   #--return cost time squared
    return cost_time(lons, lats, lons_wind, lats_wind,  xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=dtprint)**2.0
 
 def wind(lons,lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced):
@@ -104,22 +105,14 @@ def wind(lons,lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced):
    #--we extract wind on lat using the xarray sel method
    lons_indices=closest_argmin(lons,lons_wind)  #--we need the indices because lon,time are lumped
    lats_indices=closest_argmin(lats,lats_wind)
-   #lats_closest=lats_wind[lats_indices]         #--we need the closest values #TODO remove - xr_u200_reduced already contains lats_wind
    #--create new zz axis
    lons_z  = xr.DataArray(lons_indices, dims="zz")
-   #lats_z  = xr.DataArray(lats_closest, dims="zz")
    lats_z  = xr.DataArray(lats_indices, dims="zz")
-
+   #
    #--Extract the data along the new axis
    windu=xr_u200_reduced.isel(z=lons_z, latitude=lats_z)['u'].values
    windv=xr_v200_reduced.isel(z=lons_z, latitude=lats_z)['v'].values
-   #windu=xr_u200_reduced.sel(latitude=lats_z)['u'].values
-   #windv=xr_v200_reduced.sel(latitude=lats_z)['v'].values
-
-   #xr_v200_reduced.sel(z=lons_z.values).rename_dims({"z": "zz",}).sel(latitude=lats_z)['v'].values
-
-   #windu=xr_u200_reduced.interp(latitude=lats_z,z=lons_z,method='linear')['u'].values
-   #windv=xr_v200_reduced.interp(latitude=lats_z,z=lons_z,method='linear')['v'].values
+   #
    #--Return u,v components of the wind
    return windu,windv
 
@@ -166,8 +159,9 @@ def quickest_route(dep_loc, arr_loc, npoints, lat_iagos, lons_wind, lats_wind, x
     x0, y0 = shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True)
     #
     #--Minimization with y0 from shortest route as initial conditions
-
-    res = minimize(cost_squared,y0[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp} )
+    #
+    res = minimize(cost_squared,y0[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),\
+                   method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp} )
     y = np.append(np.insert(res['x'],0,dep_loc[1]),arr_loc[1])
     quickest_time=cost_time(x0, y, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
     #
@@ -179,15 +173,63 @@ def quickest_route(dep_loc, arr_loc, npoints, lat_iagos, lons_wind, lats_wind, x
       dy=[dymax*float(i)/float(imid) for i in range(imid)]+[dymax*float(n-i)/float(n-imid) for i in range(imid,n)]
       y0p=y0+dy
       #--minimization with y0p as initial conditions
-      res = minimize(cost_squared,y0p[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp})
+      res = minimize(cost_squared,y0p[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),\
+                     method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp})
       y_2 = np.append(np.insert(res['x'],0,dep_loc[1]),arr_loc[1])
       quickest_time_2=cost_time(x0, y_2, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed)
       if quickest_time_2 < quickest_time:
          quickest_time = quickest_time_2
          y = y_2   #--new best minimum
     #
-    ##--y between -180 and 180
-    ##y = (y+90.0)%180.0 - 90.0
-    ##
     #--Solution to optimal route
-    return (x0, y)
+    return (x0, y, quickest_time)
+
+def quickest_route_fast(dep_loc, arr_loc, npoints, nbest, lat_iagos, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter ):
+    """Compute the quickest route from dep_loc to arr_loc, faster but less accurate version"""
+    #
+    #--bounds
+    bnds = tuple((-89.9,89.9) for i in range(npoints))
+    #
+    #--List of possible solutions
+    y_list=[]
+    dtime_list=[]
+    #
+    #--First compute shortest route
+    x0, y0 = shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True)
+    #
+    #--Length of longitude vector
+    n=len(x0)
+    #
+    #--Test how good a first guess this is
+    dtime=cost_time(x0, y0, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed)
+    y_list.append(y0) ; dtime_list.append(dtime)
+    #
+        #--More possible first guesses
+    for dymax in [-21.,-18.,-15.,-12.,-9.,-6.,-3.,3.,6.,9.,12.,15.,18.,21.]:
+      for imid in [n//2, n//3, 2*n//3]:
+         dy=[dymax*float(i)/float(imid) for i in range(imid)]+[dymax*float(n-i)/float(n-imid) for i in range(imid,n)]
+         y0p=y0+dy
+         dtime=cost_time(x0, y0p, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed)
+         y_list.append(y0p) ; dtime_list.append(dtime)
+    #
+    #--find the nbest first guesses
+    idx=np.argpartition(dtime_list,nbest)
+    y_list_to_minimize=[y_list[i] for i in idx[:nbest]]
+    #
+    #--initialise y to one of value (it does not matter which one)
+    quickest_y=y_list[0]
+    quickest_time=dtime_list[0]
+    #
+    #--loop on selected best first guesses
+    for y in y_list_to_minimize:
+       #--Minimization with y as initial conditions
+       res = minimize(cost_squared,y[1:-1],args=(x0[1:-1],*dep_loc,*arr_loc, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed ),\
+                      method=method,bounds=bnds,options={'maxiter':maxiter,'disp':disp} )
+       y_2 = np.append(np.insert(res['x'],0,dep_loc[1]),arr_loc[1])
+       quickest_time_2=cost_time(x0, y_2, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed)
+       if quickest_time_2 < quickest_time:
+          quickest_time = quickest_time_2
+          quickest_y = y_2   #--new best minimum
+    #
+    #--Solution to optimal route
+    return (x0, quickest_y, quickest_time)
