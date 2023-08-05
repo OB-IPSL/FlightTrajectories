@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=optim_iagos
+#SBATCH --time=1-00:00:00
+#SBATCH --mem=1gb
+#SBATCH -o /home/oboucher/optim_iagos.%j
+
+#--directory with python scripts
+DIR=/home/oboucher/Aerospace/FlightTrajectories/FlightTrajectories
+
+cd $DIR
+
+python optim_iagos_only.py --route=europe_to_northamerica --yr=2019
+
