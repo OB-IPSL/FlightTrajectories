@@ -239,10 +239,8 @@ def compute_IAGOS_route(lon_shortest, lon_iagos_values, lat_iagos_values,
     dist_gcc_iagos = gcc.distance_between_points(p1_iagos,p2_iagos,unit='kilometers')
 
     dt_iagos_2=cost_time(lon_iagos_cruising, lat_iagos_cruising, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
-    #print('IAGOS cruising flight time actual and sampled estimated =',"{:6.4f}".format(dt_iagos_1),"{:6.4f}".format(dt_iagos_2),'hours')
     
-    return (lon_iagos_cruising, lat_iagos_cruising, pressure_iagos_cruising, 
-           p1_iagos, p2_iagos, dist_iagos, dist_gcc_iagos, dt_iagos_2)
+    return (lon_iagos_cruising, lat_iagos_cruising, pressure_iagos_cruising, p1_iagos, p2_iagos, dist_iagos, dist_gcc_iagos, dt_iagos_2)
 
 def make_plot(rotated, lon_iagos_values, lat_iagos_values, lon_key_values, lat_key_values, alt_key_values,
               lon_shortest, lat_shortest, lon_quickest, lat_quickest, lon_ed, lat_ed, 
@@ -561,9 +559,8 @@ def opti(yr, mth, inputfile, route, level, maxiter,
         if iagos_route is None:
             continue
         else:
-            (lon_iagos_cruising, lat_iagos_cruising, 
-             pressure_iagos_cruising, p1_iagos, p2_iagos, 
-             dist_iagos, dist_gcc_iagos, dt_iagos_2) = iagos_route
+            (lon_iagos_cruising, lat_iagos_cruising, pressure_iagos_cruising, p1_iagos, p2_iagos, dist_iagos, dist_gcc_iagos, dt_iagos_2) = iagos_route
+            print('IAGOS cruising flight time actual and sampled estimated =',"{:6.4f}".format(dt_iagos_1),"{:6.4f}".format(dt_iagos_2),'hours')
 
         #---------------------------
         #--compute OB quickest route
