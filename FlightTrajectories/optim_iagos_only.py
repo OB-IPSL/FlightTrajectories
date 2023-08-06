@@ -357,6 +357,8 @@ def ED_quickest_route(p1, p2, airspeed, lon_p1, lon_p2, lat_p1, lat_p2,
       lon_ed=float('inf')
       lat_ed=float('inf')
       dt_ed_HD=float('inf')
+      lon_ed_LD=float('inf')
+      lat_ed_LD=float('inf')
       dt_ed_LD=float('inf')
     end_time = time.time()
     time_elapsed_EG=end_time-start_time
