@@ -376,7 +376,7 @@ def ED_quickest_route(p1, p2, airspeed, lon_p1, lon_p2, lat_p1, lat_p2,
 #--main routine
 def opti(yr, mth, inputfile, route, level, maxiter,
          method, precision, path_iagos, pathERA5, pathout,
-         nbmeters, nbest, airspeed, R_earth, disp, pltshow, Dt_ERA):
+         nbmeters, nbest, airspeed, disp, pltshow, Dt_ERA):
 
     if route != '': 
         #--use the selected route
@@ -546,7 +546,7 @@ def opti(yr, mth, inputfile, route, level, maxiter,
             continue
         
         #--compute shortest route
-        lon_shortest, lat_shortest = shortest_route(p1, p2, npoints, R_earth, even_spaced=True)
+        lon_shortest, lat_shortest = shortest_route(p1, p2, npoints)
         
         #--compute time of shortest route 
         dt_shortest=cost_time(lon_shortest, lat_shortest, lons_wind_reduced, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
@@ -572,11 +572,11 @@ def opti(yr, mth, inputfile, route, level, maxiter,
         if precision=='low':
             #--fast, less accurate version
            lon_quickest, lat_quickest, dt_quickest = quickest_route_fast(p1, p2, npoints, nbest, lat_iagos_cruising, lons_wind_reduced, lats_wind, 
-                                                                         xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter )
+                                                                         xr_u200_reduced, xr_v200_reduced, airspeed, method, disp, maxiter )
         elif precision=='high':
            #--full version
            lon_quickest, lat_quickest, dt_quickest = quickest_route(p1, p2, npoints, lat_iagos_cruising, lons_wind_reduced, lats_wind, 
-                                                                    xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter )
+                                                                    xr_u200_reduced, xr_v200_reduced, airspeed, method, disp, maxiter )
         end_time = time.time()
         time_elapsed_OB=end_time-start_time
         print('Time elapsed for gradient descent method =',"{:3.1f}".format(time_elapsed_OB),'s')
@@ -714,15 +714,13 @@ def main():
     nbest = 12
     #--typical aircraft airspeed in m/s 
     airspeed = 240.
-    #--Earth's radius in m (same value as in misc_geo)
-    R_earth = 6372800.
     #--print out details of the minimization
     disp=False
     #--show plots while running
     pltshow=False
     #pltshow=True
     #
-    opti(yr, mth, inputfile, route, level, maxiter, method, precision, path_iagos, path_ERA5, pathout, nbmeters, nbest, airspeed, R_earth, disp, pltshow, Dt_ERA)
+    opti(yr, mth, inputfile, route, level, maxiter, method, precision, path_iagos, path_ERA5, pathout, nbmeters, nbest, airspeed, disp, pltshow, Dt_ERA)
 
 if __name__ == "__main__":
     main()

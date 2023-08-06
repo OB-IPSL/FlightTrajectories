@@ -116,47 +116,23 @@ def wind(lons,lats, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced):
    #--Return u,v components of the wind
    return windu,windv
 
-def shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True):
-    """Compute the shortest route from dep_loc to arr_loc"""
+#--compute shortest route for trajectories along the Equator
+def shortest_route(dep_loc, arr_loc, npoints):
     #--Returns npoints points along the shortest (great circle) route
     #--dep_loc and arr_loc are in the order (lon, lat)
-    latlon_crs = ccrs.PlateCarree()
-    #--projection for transforming trajectory
-    crs = ccrs.Gnomonic(central_longitude=dep_loc[0], central_latitude=dep_loc[1])
-    gno_aloc = crs.transform_point(arr_loc[0], arr_loc[1], latlon_crs)
-    #--two options here
-    #--points are evenly spaced in distance (this is what we want)
-    if even_spaced:
-        # Gnomic projection so distances from centre scale with tan
-        # Map distance = R * tan (true dist/R)
-        # Get distances in gnomic space that are evenly spaced in true distance
-        point_gdists = np.tan(np.linspace(0, np.arctan(np.sqrt(np.sum(np.array(gno_aloc)**2))/R_earth), npoints+2))
-        # Moving on straight line in gnomic projection, so can scale x,y coordinates separately
-        scale_gdists = point_gdists/point_gdists[-1]
-        newpoints = latlon_crs.transform_points(
-            crs,
-            scale_gdists*gno_aloc[0],
-            scale_gdists*gno_aloc[1])
-    #--points are not evenly spaced in distance
-    else:
-        newpoints = latlon_crs.transform_points(
-            crs,
-            np.linspace(0, gno_aloc[0], npoints+2),
-            np.linspace(0, gno_aloc[1], npoints+2))
-    #--Define trajectory points
-    x0 = newpoints[:, 0] #--longitudes
-    y0 = newpoints[:, 1] #--latitudes
-    #--Return the array of points
+    #--new code - only works for trajectories reprojected onto the Equator
+    x0=np.linspace(dep_loc[0],arr_loc[0],num=npoints+2,endpoint=True)
+    y0=np.linspace(dep_loc[1],arr_loc[1],num=npoints+2,endpoint=True)
     return x0, y0
 
-def quickest_route(dep_loc, arr_loc, npoints, lat_iagos, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter ):
+def quickest_route(dep_loc, arr_loc, npoints, lat_iagos, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, method, disp, maxiter ):
     """Compute the quickest route from dep_loc to arr_loc"""
     #
     #--bounds
     bnds = tuple((-89.9,89.9) for i in range(npoints))
     #
     #--First compute shortest route
-    x0, y0 = shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True)
+    x0, y0 = shortest_route(dep_loc, arr_loc, npoints)
     #
     #--Minimization with y0 from shortest route as initial conditions
     #
@@ -184,7 +160,7 @@ def quickest_route(dep_loc, arr_loc, npoints, lat_iagos, lons_wind, lats_wind, x
     #--Solution to optimal route
     return (x0, y, quickest_time)
 
-def quickest_route_fast(dep_loc, arr_loc, npoints, nbest, lat_iagos, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, R_earth, method, disp, maxiter ):
+def quickest_route_fast(dep_loc, arr_loc, npoints, nbest, lat_iagos, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, method, disp, maxiter ):
     """Compute the quickest route from dep_loc to arr_loc, faster but less accurate version"""
     #
     #--bounds
@@ -195,7 +171,7 @@ def quickest_route_fast(dep_loc, arr_loc, npoints, nbest, lat_iagos, lons_wind, 
     dtime_list=[]
     #
     #--First compute shortest route
-    x0, y0 = shortest_route(dep_loc, arr_loc, npoints, R_earth, even_spaced=True)
+    x0, y0 = shortest_route(dep_loc, arr_loc, npoints)
     #
     #--Length of longitude vector
     n=len(x0)
