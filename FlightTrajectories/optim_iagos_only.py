@@ -547,7 +547,7 @@ def opti(yr, mth, inputfile, route, level, maxiter,
         lon_shortest, lat_shortest = shortest_route(p1, p2, npoints)
         
         #--compute time of shortest route 
-        dt_shortest=cost_time(lon_shortest, lat_shortest, lons_wind_reduced, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
+        dt_shortest=cost_time(lon_shortest, lat_shortest, lons_wind_reduced, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=True)
         print('Cruising flight time shortest =',"{:6.4f}".format(dt_shortest),'hours')
         
         #---------------------
@@ -718,6 +718,8 @@ def main():
     #pltshow=True
     #
     opti(yr, mth, inputfile, route, level, maxiter, method, precision, path_iagos, path_ERA5, pathout, nbmeters, nbest, airspeed, disp, pltshow, Dt_ERA)
+    #
+    print('END OF MAIN ROUTINE')
 
 if __name__ == "__main__":
     main()
