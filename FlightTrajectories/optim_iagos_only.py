@@ -299,16 +299,6 @@ def make_plot(rotated, lon_iagos_values, lat_iagos_values, lon_key_values, lat_k
     plt.savefig(basefile+'.png',dpi=150,bbox_inches='tight')
     if pltshow: plt.show()
     plt.close()
-    
-    #--save a pickle to redo the plots later if needed
-    dico={'iagos_id':iagos_id,'flightid_iagos':flightid_iagos,'airspeed':airspeed,'dist_gcc':dist_gcc,\
-          'lat_pole': lat_pole,'lon_pole':lon_pole,'lon_iagos_values':lon_iagos_values,'lon_iagos_cruising':lon_iagos_cruising,'lat_iagos_values':lat_iagos_values,\
-          'lon_key_values':lon_key_values,'optim_level':optim_level,'solution':solution,\
-          'lat_key_values':lat_key_values,'lon_shortest':lon_shortest,'lat_shortest':lat_shortest,'pressure_iagos':pressure_iagos,'alt_key_values':alt_key_values,\
-          'lon_quickest':lon_quickest,'lat_quickest':lat_quickest,'lon_ed':lon_ed,'lat_ed':lat_ed,'lons_wind':lons_wind,'lats_wind':lats_wind,\
-          'xr_u200':xr_u200_reduced,'xr_v200':xr_v200_reduced,'dep_airport_iagos':dep_airport_iagos,'arr_airport_iagos':arr_airport_iagos,\
-          'stryr':stryr,'strmth':strmth,'strday':strday,'dt_shortest':dt_shortest,'dt_quickest':dt_quickest,'dt_ed':dt_ed_LD,'dt_iagos_2':dt_iagos_2}
-    basefile=pathout+'data_'+str(iagos_id)+'_lev'+str(optim_level)+'_'+str(yr)
 
 def ED_quickest_route(p1, p2, airspeed, lon_p1, lon_p2, lat_p1, lat_p2, 
                       lat_shortest, lat_quickest, lat_iagos_cruising, lons_wind, lats_wind, xr_u200_reduced, xr_v200_reduced, npoints):
@@ -616,7 +606,7 @@ def opti(yr, mth, inputfile, route, level, maxiter,
         
         #--save a pickle to redo the plots later if needed
         dico={'iagos_id':iagos_id,'flightid_iagos':flightid_iagos,'airspeed':airspeed,'dist_gcc':dist_gcc,\
-              'lat_pole': lat_pole,'lon_pole':lon_pole,'lon_iagos.values':lon_iagos.values,'lon_iagos_cruising':lon_iagos_cruising,'lat_iagos_values':lat_iagos.values,\
+              'lat_pole': lat_pole,'lon_pole':lon_pole,'lon_iagos_values':lon_iagos.values,'lon_iagos_cruising':lon_iagos_cruising,'lat_iagos_values':lat_iagos.values,\
               'lon_key_values':lon_key_values,'optim_level':optim_level,'solution':solution,\
               'lat_key_values':lat_key_values,'lon_shortest':lon_shortest,'lat_shortest':lat_shortest,'pressure_iagos':pressure_iagos,'alt_key_values':alt_key_values,\
               'lon_quickest':lon_quickest,'lat_quickest':lat_quickest,'lon_ed':lon_ed,'lat_ed':lat_ed,'lons_wind':lons_wind,'lats_wind':lats_wind,\
