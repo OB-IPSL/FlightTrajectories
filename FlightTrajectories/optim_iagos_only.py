@@ -494,17 +494,22 @@ def opti(yr, mth, inputfile, route, level, maxiter,
         #--compute times_era assuming uniform sampling of longitudes
         times_wind=[]
 
-        _idx_p1 = bisect.bisect_right(lons_wind, lon_p1)
-        _idx_p2 = bisect.bisect_right(lons_wind, lon_p2)
+        _idx_p1 = bisect.bisect_right(lons_wind, lon_p1) - 1 
+        _idx_p2 = bisect.bisect_right(lons_wind, lon_p2) + 1
 
         lons_wind_reduced = lons_wind[_idx_p1:_idx_p2]
 
         lons_z = xr.DataArray(lons_wind_reduced, dims="z")
 
+        #--finding the corresponding times
         for lon in list(lons_wind_reduced):
           time_to_append,time_ind_closest=nearest(times_to_extract,dep_time_iagos+timedelta(hours=dtime_per_degree*(lon-lon_p1)))
           times_wind.append(time_to_append)
         times_wind=np.array(times_wind)
+
+        #--initial and final time tags to ensure back-comptability but could be removed
+        times_wind[np.where(lons_wind_reduced<lon_p1)]=times_to_extract[0]
+        times_wind[np.where(lon_p2<lons_wind_reduced)]=times_to_extract[-1]
         
         times_z = xr.DataArray(times_wind, dims="z")
 
@@ -537,7 +542,7 @@ def opti(yr, mth, inputfile, route, level, maxiter,
         lon_shortest, lat_shortest = shortest_route(p1, p2, npoints)
         
         #--compute time of shortest route 
-        dt_shortest=cost_time(lon_shortest, lat_shortest, lons_wind_reduced, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=True)
+        dt_shortest=cost_time(lon_shortest, lat_shortest, lons_wind_reduced, lats_wind, xr_u200_reduced, xr_v200_reduced, airspeed, dtprint=False)
         print('Cruising flight time shortest =',"{:6.4f}".format(dt_shortest),'hours')
         
         #---------------------
@@ -700,7 +705,7 @@ def main():
     #--number of best first guess to be used in low precision option
     nbest = 12
     #--typical aircraft airspeed in m/s 
-    airspeed = 240.
+    airspeed = 241.
     #--print out details of the minimization
     disp=False
     #--show plots while running
